@@ -57,19 +57,31 @@ export function addItemToCart(item: Pick<CartLine, "id" | "name" | "price">): Ca
   return cart;
 }
 
+export function removeItemFromCart(id: string): CartLine[] {
+  const next = loadCart().filter((c) => c.id !== id);
+  saveCart(next);
+  return next;
+}
+
 export function clearCartStore() {
   localStorage.removeItem(getCartKey());
   window.dispatchEvent(new Event(CART_EVENT));
 }
 
 export function useCart() {
-  const [cart, setCart] = useState<CartLine[]>(() => loadCart());
+  const [cart, setCart] = useState<CartLine[]>([]);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const sync = () => setCart(loadCart());
+    const sync = () => {
+      setCart(loadCart());
+      setReady(true);
+    };
+    const t = window.setTimeout(sync, 0);
     window.addEventListener(CART_EVENT, sync);
     window.addEventListener(AUTH_EVENT, sync);
     return () => {
+      window.clearTimeout(t);
       window.removeEventListener(CART_EVENT, sync);
       window.removeEventListener(AUTH_EVENT, sync);
     };
@@ -77,6 +89,10 @@ export function useCart() {
 
   const add = useCallback((item: Pick<CartLine, "id" | "name" | "price">) => {
     setCart(addItemToCart(item));
+  }, []);
+
+  const remove = useCallback((id: string) => {
+    setCart(removeItemFromCart(id));
   }, []);
 
   const updateQty = useCallback((id: string, delta: number) => {
@@ -94,5 +110,5 @@ export function useCart() {
 
   const count = cart.reduce((s, l) => s + l.qty, 0);
 
-  return { cart, add, updateQty, clear, count };
+  return { cart, add, remove, updateQty, clear, count, ready };
 }

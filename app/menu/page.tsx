@@ -1,11 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Check, MapPin, Plus, Search, ShoppingBag, SlidersHorizontal, Star, Timer } from "lucide-react";
 
 import { Logo } from "@/components/ui/Logo";
-import { UserMenu } from "@/components/ui/UserMenu";
+import dynamic from "next/dynamic";
+const UserMenu = dynamic(
+  () => import("@/components/ui/UserMenu").then((m) => m.UserMenu),
+  { ssr: false }
+);
 import { useCart } from "@/lib/cart";
 
 type MenuItem = {
@@ -41,7 +45,6 @@ export default function MenuPage() {
   const [items, setItems] = useState<MenuItem[]>([]);
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loadedFor, setLoadedFor] = useState<string | null>(null);
-  const [added, setAdded] = useState<string | null>(null);
   const [activeCuisine, setActiveCuisine] = useState<string | null>(null);
   const [activeRestaurant, setActiveRestaurant] = useState<string | null>(null);
   const [activePrice, setActivePrice] = useState<string | null>(null);
@@ -102,13 +105,7 @@ export default function MenuPage() {
     });
   }, [items, activeCuisine, activeRestaurant, activePrice, restaurantById]);
 
-  const { add: addToCart, count: cartCount } = useCart();
-
-  const addToCartFlow = useCallback((item: MenuItem) => {
-    addToCart({ id: item.id, name: item.name, price: item.price });
-    setAdded(item.id);
-    setTimeout(() => setAdded(null), 900);
-  }, [addToCart]);
+  const { cart, add: addToCart, remove: removeFromCart, count: cartCount } = useCart();
 
   const toggle = (
     setter: React.Dispatch<React.SetStateAction<string | null>>,
@@ -240,6 +237,7 @@ export default function MenuPage() {
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {filtered.map((item, i) => {
                 const rest = restaurantById.get(item.restaurant_id);
+                const inCart = cart.some((c) => c.id === item.id);
                 return (
                   <article
                     key={item.id}
@@ -256,15 +254,26 @@ export default function MenuPage() {
                           {item.category}
                         </span>
                       )}
-                      {/* Floating + button (half-overlapping the image edge) */}
+                      {/* Floating + button: turns into a green tick while the
+                          item is in the cart and stays until deselected. */}
                       <button
-                        onClick={() => addToCartFlow(item)}
-                        aria-label={`Add ${item.name} to cart`}
+                        onClick={() =>
+                          inCart
+                            ? removeFromCart(item.id)
+                            : addToCart({ id: item.id, name: item.name, price: item.price })
+                        }
+                        aria-label={
+                          inCart
+                            ? `Remove ${item.name} from cart`
+                            : `Add ${item.name} to cart`
+                        }
                         className={`focus-ring absolute -bottom-4 right-4 grid size-11 place-items-center rounded-full shadow-glow transition-all duration-150 active:scale-90 hover:scale-110 ${
-                          added === item.id ? "bg-sage-500" : "bg-primary-600 text-white hover:bg-primary-500"
+                          inCart
+                            ? "bg-sage-500 text-white"
+                            : "bg-primary-600 text-white hover:bg-primary-500"
                         }`}
                       >
-                        {added === item.id ? <Check className="size-5" /> : <Plus className="size-5" />}
+                        {inCart ? <Check className="size-5" /> : <Plus className="size-5" />}
                       </button>
                     </div>
 

@@ -3,11 +3,15 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Plus, ShieldAlert, ShoppingBag, Star } from "lucide-react";
+import { ArrowLeft, Check, Plus, ShieldAlert, ShoppingBag, Star } from "lucide-react";
 
 import { Logo } from "@/components/ui/Logo";
 import { Button } from "@/components/ui/Button";
-import { UserMenu } from "@/components/ui/UserMenu";
+import dynamic from "next/dynamic";
+const UserMenu = dynamic(
+  () => import("@/components/ui/UserMenu").then((m) => m.UserMenu),
+  { ssr: false }
+);
 import { useCart } from "@/lib/cart";
 
 type MenuItem = {
@@ -40,15 +44,7 @@ export default function ProductPage() {
   const [rating, setRating] = useState(5);
   const [posting, setPosting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { add: addToCart, count: cartCount } = useCart();
-  const [added, setAdded] = useState(false);
-
-  const addItem = useCallback(() => {
-    if (!item) return;
-    addToCart({ id: item.id, name: item.name, price: item.price });
-    setAdded(true);
-    setTimeout(() => setAdded(false), 900);
-  }, [item, addToCart]);
+  const { cart, add: addToCart, remove: removeFromCart, count: cartCount } = useCart();
 
   useEffect(() => {
     let active = true;
@@ -143,6 +139,10 @@ export default function ProductPage() {
           </div>
         ) : (
           <>
+            {/* Persists as a green tick while the item is in the cart. */}
+            {(() => {
+              const inCart = cart.some((c) => c.id === item.id);
+              return (
             <section className="animate-fade-up mt-8 grid gap-6 rounded-3xl border border-beige-200 bg-white p-6 shadow-card sm:grid-cols-[1.2fr_1fr] sm:p-8">
               <div className="flex min-h-56 items-center justify-center rounded-2xl bg-beige-100 text-[9rem]">
                 <span className="drop-shadow-lg">{item.image_url ?? "🍲"}</span>
@@ -172,13 +172,22 @@ export default function ProductPage() {
                   <span className="text-3xl font-extrabold text-ink-900">
                     ₹{Number(item.price).toFixed(2)}
                   </span>
-                  <Button onClick={addItem} className={added ? "!bg-sage-500" : undefined}>
-                    <Plus className="size-4" />
-                    {added ? "Added to cart ✓" : "Add to cart"}
+                  <Button
+                    onClick={() =>
+                      inCart
+                        ? removeFromCart(item.id)
+                        : addToCart({ id: item.id, name: item.name, price: item.price })
+                    }
+                    className={inCart ? "!bg-sage-500" : undefined}
+                  >
+                    {inCart ? <Check className="size-4" /> : <Plus className="size-4" />}
+                    {inCart ? "Added to cart ✓" : "Add to cart"}
                   </Button>
                 </div>
               </div>
             </section>
+              );
+            })()}
 
             <section className="mt-10">
               <h2 className="flex items-center gap-2 text-xl font-bold text-ink-900">

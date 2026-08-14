@@ -9,12 +9,16 @@ import { Logo } from "@/components/ui/Logo";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { Input } from "@/components/ui/Input";
-import { UserMenu } from "@/components/ui/UserMenu";
+import dynamic from "next/dynamic";
+const UserMenu = dynamic(
+  () => import("@/components/ui/UserMenu").then((m) => m.UserMenu),
+  { ssr: false }
+);
 import { useCart } from "@/lib/cart";
 
 export default function CartPage() {
   const router = useRouter();
-  const { cart, updateQty, clear } = useCart();
+  const { cart, updateQty, clear, ready } = useCart();
   const [coupon, setCoupon] = useState("");
   const [discount, setDiscount] = useState(0);
   const [couponMsg, setCouponMsg] = useState<string | null>(null);
@@ -95,7 +99,13 @@ export default function CartPage() {
           Your cart
         </h1>
 
-        {cart.length === 0 ? (
+        {!ready ? (
+          <div className="mt-16 space-y-4" aria-busy="true">
+            <div className="h-24 animate-pulse rounded-3xl bg-beige-200/60" />
+            <div className="h-24 animate-pulse rounded-3xl bg-beige-200/60" />
+            <div className="h-24 animate-pulse rounded-3xl bg-beige-200/60" />
+          </div>
+        ) : cart.length === 0 ? (
           <div className="mt-16 text-center">
             <p className="text-5xl">🛒</p>
             <p className="mt-4 text-lg font-semibold text-ink-700">Your cart is empty</p>
