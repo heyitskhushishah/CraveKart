@@ -1,0 +1,265 @@
+-- ============================================================
+-- FoodRush — Intentionally vulnerable database setup
+-- Run this entire script once in the Supabase SQL Editor.
+-- (Dashboard → SQL Editor → New query → paste → Run)
+--
+-- If the demo auth-user seeding below fails, the script only
+-- prints a warning — the core tables are created regardless.
+-- ============================================================
+
+-- Enable pgcrypto for crypt()/gen_salt()
+create extension if not exists pgcrypto;
+
+-- ------------------------------------------------------------
+-- TABLES  (Row Level Security is deliberately LEFT OFF = A01)
+-- ------------------------------------------------------------
+create table if not exists public.users (
+  id uuid primary key,
+  email text not null unique,
+  name text not null,
+  role text not null default 'customer',      -- role trusted from client (A01)
+  password_md5 text,                          -- MD5-hashed demo passwords (A02)
+  created_at timestamptz default now()
+);
+
+create table if not exists public.restaurants (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  cuisine text not null,
+  rating numeric(2,1) not null default 4.5,
+  eta_min text not null default '25-35',
+  image_url text
+);
+
+create table if not exists public.menu_items (
+  id uuid primary key default gen_random_uuid(),
+  restaurant_id uuid references public.restaurants(id) on delete cascade,
+  name text not null,
+  description text,
+  price numeric(6,2) not null,
+  category text,
+  image_url text
+);
+
+create table if not exists public.coupons (
+  id uuid primary key default gen_random_uuid(),
+  code text not null unique,
+  discount numeric(5,2) not null,
+  uses int not null default 0,
+  max_uses int not null default 100
+);
+
+create table if not exists public.orders (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references public.users(id),
+  restaurant_name text not null,
+  items jsonb not null,
+  total numeric(8,2) not null,
+  status text not null default 'pending',
+  cc_number text,                              -- plaintext card numbers (A02)
+  created_at timestamptz default now()
+);
+
+create table if not exists public.reviews (
+  id uuid primary key default gen_random_uuid(),
+  product_id uuid references public.menu_items(id) on delete cascade,
+  user_id uuid references public.users(id),
+  author text not null,
+  content text not null,                       -- stored XSS sink (A03)
+  rating int not null default 5,
+  created_at timestamptz default now()
+);
+
+-- RLS is OFF everywhere — anyone (even logged out) can read/write (A01).
+alter table public.users disable row level security;
+alter table public.restaurants disable row level security;
+alter table public.menu_items disable row level security;
+alter table public.coupons disable row level security;
+alter table public.orders disable row level security;
+alter table public.reviews disable row level security;
+
+-- ------------------------------------------------------------
+-- VULNERABLE RPC FUNCTIONS  (A03 — SQL injection)
+-- ------------------------------------------------------------
+
+-- Classic SQLi: user input concatenated into a dynamic EXECUTE.
+create or replace function public.search_menu(search_term text)
+returns setof public.menu_items
+language plpgsql
+as $$
+begin
+  return query execute
+    'select * from public.menu_items where name ilike ''%' || search_term || '%''';
+end;
+$$;
+
+-- SQLi via coupon code: ' OR '1'='1  → returns the first coupon discount.
+create or replace function public.redeem_coupon(code text)
+returns numeric
+language plpgsql
+as $$
+declare v_discount numeric;
+begin
+  execute 'select discount from public.coupons where code = ''' || code || ''''
+    into v_discount;
+  return coalesce(v_discount, 0);
+end;
+$$;
+
+-- ------------------------------------------------------------
+-- DEMO AUTH USERS  (exception-safe: never rolls back the tables)
+-- ------------------------------------------------------------
+do $$
+begin
+  insert into auth.users (
+    instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
+    raw_app_meta_data, raw_user_meta_data, created_at, updated_at
+  ) values
+  (
+    '00000000-0000-0000-0000-000000000000',
+    '00000000-0000-4000-8000-000000000001',
+    'authenticated', 'authenticated',
+    'admin@foodrush.app',
+    crypt('admin123', gen_salt('bf')),
+    now(),
+    '{"provider":"email","providers":["email"]}'::jsonb,
+    '{"name":"Ava Admin"}'::jsonb,
+    now(), now()
+  ),
+  (
+    '00000000-0000-0000-0000-000000000000',
+    '00000000-0000-4000-8000-000000000002',
+    'authenticated', 'authenticated',
+    'priya@foodrush.app',
+    crypt('priya123', gen_salt('bf')),
+    now(),
+    '{"provider":"email","providers":["email"]}'::jsonb,
+    '{"name":"Priya Sharma"}'::jsonb,
+    now(), now()
+  ),
+  (
+    '00000000-0000-0000-0000-000000000000',
+    '00000000-0000-4000-8000-000000000003',
+    'authenticated', 'authenticated',
+    'alex@foodrush.app',
+    crypt('alex123', gen_salt('bf')),
+    now(),
+    '{"provider":"email","providers":["email"]}'::jsonb,
+    '{"name":"Alex Rivera"}'::jsonb,
+    now(), now()
+  )
+  on conflict (id) do nothing;
+
+  insert into auth.identities (
+    id, provider_id, user_id, identity_data, provider, last_sign_in_at, created_at, updated_at
+  ) values
+  (
+    gen_random_uuid(),
+    '00000000-0000-4000-8000-000000000001',
+    '00000000-0000-4000-8000-000000000001',
+    jsonb_build_object('sub', '00000000-0000-4000-8000-000000000001', 'email', 'admin@foodrush.app', 'email_verified', true),
+    'email', now(), now(), now()
+  ),
+  (
+    gen_random_uuid(),
+    '00000000-0000-4000-8000-000000000002',
+    '00000000-0000-4000-8000-000000000002',
+    jsonb_build_object('sub', '00000000-0000-4000-8000-000000000002', 'email', 'priya@foodrush.app', 'email_verified', true),
+    'email', now(), now(), now()
+  ),
+  (
+    gen_random_uuid(),
+    '00000000-0000-4000-8000-000000000003',
+    '00000000-0000-4000-8000-000000000003',
+    jsonb_build_object('sub', '00000000-0000-4000-8000-000000000003', 'email', 'alex@foodrush.app', 'email_verified', true),
+    'email', now(), now(), now()
+  )
+  on conflict (id) do nothing;
+
+  raise notice 'Demo auth users seeded OK';
+exception when others then
+  raise notice 'Demo auth users NOT seeded: % (core tables are fine)', sqlerrm;
+end $$;
+
+-- Demo profiles (separate block so they seed even if auth seeding failed)
+do $$
+begin
+  insert into public.users (id, email, name, role, password_md5) values
+  ('00000000-0000-4000-8000-000000000001', 'admin@foodrush.app', 'Ava Admin', 'admin',    md5('admin123')),
+  ('00000000-0000-4000-8000-000000000002', 'priya@foodrush.app', 'Priya Sharma', 'customer', md5('priya123')),
+  ('00000000-0000-4000-8000-000000000003', 'alex@foodrush.app', 'Alex Rivera', 'customer', md5('alex123'))
+  on conflict (id) do nothing;
+  raise notice 'Demo profiles seeded OK';
+exception when others then
+  raise notice 'Demo profiles NOT seeded: %', sqlerrm;
+end $$;
+
+-- ------------------------------------------------------------
+-- RESTAURANTS + MENU
+-- ------------------------------------------------------------
+insert into public.restaurants (id, name, cuisine, rating, eta_min, image_url) values
+('00000000-0000-4000-9000-000000000001', 'Pizza Palace',  'Italian',   4.8, '25-35', '🍕'),
+('00000000-0000-4000-9000-000000000002', 'Burger Barn',   'American',  4.6, '20-30', '🍔'),
+('00000000-0000-4000-9000-000000000003', 'Spice Route',   'Indian',    4.9, '30-40', '🍛')
+on conflict (id) do nothing;
+
+insert into public.menu_items (id, restaurant_id, name, description, price, category, image_url) values
+-- Pizza Palace
+('00000000-0000-4000-a000-000000000001', '00000000-0000-4000-9000-000000000001', 'Margherita Pizza',   'Fresh basil, mozzarella, rich tomato sauce.',  9.99,  'Pizza', '🍕'),
+('00000000-0000-4000-a000-000000000002', '00000000-0000-4000-9000-000000000001', 'Pepperoni Feast',    'Double pepperoni with extra cheese.',           12.49, 'Pizza', '🍕'),
+('00000000-0000-4000-a000-000000000003', '00000000-0000-4000-9000-000000000001', 'Garlic Breadsticks', 'Buttery garlic bread with marinara dip.',        5.99,  'Sides', '🥖'),
+('00000000-0000-4000-a000-000000000004', '00000000-0000-4000-9000-000000000001', 'Tiramisu',           'Classic Italian coffee-soaked dessert.',        6.49,  'Dessert', '🍰'),
+-- Burger Barn
+('00000000-0000-4000-a000-000000000005', '00000000-0000-4000-9000-000000000002', 'Classic Cheeseburger','Smash patty, cheddar, pickles, secret sauce.',  8.99,  'Burgers', '🍔'),
+('00000000-0000-4000-a000-000000000006', '00000000-0000-4000-9000-000000000002', 'Bacon BBQ Burger',   'Crispy bacon, onion rings, smoky BBQ.',         10.99, 'Burgers', '🍔'),
+('00000000-0000-4000-a000-000000000007', '00000000-0000-4000-9000-000000000002', 'Crispy Fries',       'Golden fries with a chipotle dip.',             3.99,  'Sides', '🍟'),
+('00000000-0000-4000-a000-000000000008', '00000000-0000-4000-9000-000000000002', 'Chocolate Shake',    'Thick and creamy, topped with whipped cream.',  5.49,  'Drinks', '🥤'),
+-- Spice Route
+('00000000-0000-4000-a000-000000000009', '00000000-0000-4000-9000-000000000003', 'Butter Chicken',     'Creamy tomato gravy with tandoori chicken.',    11.99, 'Curries', '🍛'),
+('00000000-0000-4000-a000-000000000010', '00000000-0000-4000-9000-000000000003', 'Paneer Tikka',       'Smoky grilled paneer with mint chutney.',       9.49,  'Starters', '🧆'),
+('00000000-0000-4000-a000-000000000011', '00000000-0000-4000-9000-000000000003', 'Garlic Naan',        'Soft, pillowy naan brushed with garlic butter.', 2.99,  'Breads', '🫓'),
+('00000000-0000-4000-a000-000000000012', '00000000-0000-4000-9000-000000000003', 'Gulab Jamun',        'Warm milk dumplings in rose syrup.',            4.49,  'Dessert', '🍮')
+on conflict (id) do nothing;
+
+-- ------------------------------------------------------------
+-- COUPONS
+-- ------------------------------------------------------------
+insert into public.coupons (code, discount, uses, max_uses) values
+('FRESH10',   10,  0, 100),
+('WELCOME20', 20,  0, 100),
+('HACKME99',  99,  0, 5)
+on conflict (code) do nothing;
+
+-- ------------------------------------------------------------
+-- SAMPLE ORDERS  (plaintext cards — A02)
+-- ------------------------------------------------------------
+insert into public.orders (id, user_id, restaurant_name, items, total, status, cc_number) values
+('00000000-0000-4000-b000-000000000001', '00000000-0000-4000-8000-000000000002', 'Pizza Palace',
+ '[{"name":"Margherita Pizza","price":9.99,"qty":2},{"name":"Garlic Breadsticks","price":5.99,"qty":1}]',
+ 25.97, 'delivered', '4111111111111111'),
+('00000000-0000-4000-b000-000000000002', '00000000-0000-4000-8000-000000000002', 'Burger Barn',
+ '[{"name":"Bacon BBQ Burger","price":10.99,"qty":1}]',
+ 10.99, 'on_the_way', '5500000000000004'),
+('00000000-0000-4000-b000-000000000003', '00000000-0000-4000-8000-000000000003', 'Spice Route',
+ '[{"name":"Butter Chicken","price":11.99,"qty":1},{"name":"Garlic Naan","price":2.99,"qty":2}]',
+ 17.97, 'pending', '4111111111111111')
+on conflict (id) do nothing;
+
+-- ------------------------------------------------------------
+-- SAMPLE REVIEWS  (one already contains stored XSS — A03)
+-- ------------------------------------------------------------
+insert into public.reviews (product_id, user_id, author, content, rating) values
+('00000000-0000-4000-a000-000000000001', '00000000-0000-4000-8000-000000000002', 'Priya', 'Absolutely divine! The cheese pull is unreal. 😍', 5),
+('00000000-0000-4000-a000-000000000005', '00000000-0000-4000-8000-000000000003', 'Alex', '<img src=x onerror="alert(document.cookie)"> Best burger in town, hands down.', 5),
+('00000000-0000-4000-a000-000000000009', '00000000-0000-4000-8000-000000000002', 'Priya', 'Rich, buttery, perfect with naan.', 5)
+on conflict (id) do nothing;
+
+-- ------------------------------------------------------------
+-- SANITY CHECK  (expect all counts > 0)
+-- ------------------------------------------------------------
+select 'users' as t, count(*) from public.users
+union all select 'restaurants', count(*) from public.restaurants
+union all select 'menu_items', count(*) from public.menu_items
+union all select 'coupons', count(*) from public.coupons
+union all select 'orders', count(*) from public.orders
+union all select 'reviews', count(*) from public.reviews;

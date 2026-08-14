@@ -1,0 +1,15 @@
+
+> foodrush@0.1.0 dev
+> next dev --webpack
+
+⚠ Port 3000 is in use by process 26512, using available port 3001 instead.
+▲ Next.js 16.3.1 (webpack)
+- Local:         http://localhost:3001
+- Network:       http://192.168.56.1:3001
+- Environments: .env.local
+✓ Ready in 1244ms
+⚠ Attempted to load @next/swc-win32-x64-msvc, but an error occurred: \\?\C:\projects\CraveKart\node_modules\@next\swc-win32-x64-msvc\next-swc.win32-x64-msvc.node is not a valid Win32 application.
+\\?\C:\projects\CraveKart\node_modules\@next\swc-win32-x64-msvc\next-swc.win32-x64-msvc.node
+✓ Running next.config.ts took 280ms
+  Skipping creating a lockfile at C:\projects\CraveKart\.next\dev\lock because we're using WASM bindings
+
