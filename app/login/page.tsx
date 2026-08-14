@@ -72,6 +72,12 @@ function LoginContent() {
       });
     }
 
+    // Keep the real auth user id alongside the profile (the profile id is a
+    // fixed seed value for demo users, so the auth id is the accurate one).
+    if (data.user?.id) {
+      localStorage.setItem("foodrush_auth_id", data.user.id);
+    }
+
     // Profile (incl. role) is trusted from the client — stored in localStorage.
     const profile =
       data.profile ??
@@ -86,6 +92,10 @@ function LoginContent() {
     if (profile) {
       localStorage.setItem("foodrush_user", JSON.stringify(profile));
     }
+
+    // Notify open pages (menu/cart headers) that the signed-in user changed,
+    // so they switch to this user's saved cart.
+    window.dispatchEvent(new Event("foodrush:auth-changed"));
 
     const next = searchParams.get("next") ?? "/";
     router.replace(next);

@@ -52,9 +52,11 @@ Notes:
 - **Weak hashing** — `legacy_accounts` stores passwords with unsalted MD5 (migration 003).
 
 ### A03: Injection
-- **SQLi in search** — `search_menu` builds SQL by concatenation; search
-  `x' or 1=1--` on `/menu` to return all items, or `x' OR '1'='1` on the cart coupon.
-  (`app/api/search/route.ts`, `app/api/coupon/route.ts`, migration 001 functions.)
+- **SQLi in search** — `search_items` is a Postgres RPC that builds SQL by string
+  concatenation inside `EXECUTE` and is called unmodified via
+  `supabase.rpc("search_items", { query })`; search `x' or 1=1--` on `/menu` to
+  return all items, or `x' OR '1'='1` on the cart coupon.
+  (`app/api/search/route.ts`, `app/api/coupon/route.ts`, migrations 001 & 005.)
 - **Stored XSS** — reviews are rendered with `dangerouslySetInnerHTML`. The Classic
   Cheeseburger already has a seeded `<img src=x onerror=...>` review; post your own on
   `/product/[id]`.

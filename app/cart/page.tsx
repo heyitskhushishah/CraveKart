@@ -9,18 +9,12 @@ import { Logo } from "@/components/ui/Logo";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { Input } from "@/components/ui/Input";
-
-type CartLine = { id: string; name: string; price: number; qty: number };
+import { UserMenu } from "@/components/ui/UserMenu";
+import { useCart } from "@/lib/cart";
 
 export default function CartPage() {
   const router = useRouter();
-  const [cart, setCart] = useState<CartLine[]>(() =>
-    JSON.parse(
-      typeof window !== "undefined"
-        ? (localStorage.getItem("foodrush_cart") ?? "[]")
-        : "[]"
-    )
-  );
+  const { cart, updateQty, clear } = useCart();
   const [coupon, setCoupon] = useState("");
   const [discount, setDiscount] = useState(0);
   const [couponMsg, setCouponMsg] = useState<string | null>(null);
@@ -30,21 +24,6 @@ export default function CartPage() {
   const [cvv, setCvv] = useState("");
   const [placing, setPlacing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const updateQty = useCallback((id: string, delta: number) => {
-    setCart((prev) => {
-      const next = prev
-        .map((l) => (l.id === id ? { ...l, qty: l.qty + delta } : l))
-        .filter((l) => l.qty > 0);
-      localStorage.setItem("foodrush_cart", JSON.stringify(next));
-      return next;
-    });
-  }, []);
-
-  const clear = useCallback(() => {
-    localStorage.removeItem("foodrush_cart");
-    setCart([]);
-  }, []);
 
   const subtotal = useMemo(() => cart.reduce((s, l) => s + l.price * l.qty, 0), [cart]);
   const total = Math.max(0, subtotal - discount);
@@ -105,6 +84,9 @@ export default function CartPage() {
           <ArrowLeft className="size-4" />
           <Logo size="md" />
         </Link>
+        <nav className="flex items-center gap-3">
+          <UserMenu />
+        </nav>
       </header>
 
       <main className="relative z-10 mx-auto w-full max-w-4xl flex-1 px-6 pb-20">

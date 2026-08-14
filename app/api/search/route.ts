@@ -1,14 +1,18 @@
+import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 
-// VULN (A03): the raw search term is forwarded straight into the
-// `search_menu` Postgres function, which builds SQL via string
-// concatenation (see supabase/migrations/20260814000001_...). PostgREST
-// RPC passes the JSON value through unmodified, so a term like
+// VULN (A03 — SQL injection): the raw search term is passed unmodified to the
+// `search_items` Postgres RPC, which builds its query with string concatenation:
+//
+//     execute 'select * from public.menu_items where name ilike ''%' || query || '%'''
+//
+// (see supabase/migrations/20260814000004_search_items.sql). There is no
+// escaping, no format()/%L, no parameterization. A term like
 //   x' or 1=1--
-// is injected verbatim into the query. No escaping, no parameterization.
+// is injected verbatim and returns every row.
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const q = (searchParams.get("q") ?? "").trim();
+  const query = (searchParams.get("q") ?? "").trim();
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -17,22 +21,13 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Supabase is not configured." }, { status: 500 });
   }
 
-  const res = await fetch(`${supabaseUrl}/rest/v1/rpc/search_menu`, {
-    method: "POST",
-    headers: {
-      apikey: anonKey,
-      Authorization: `Bearer ${anonKey}`,
-      "Content-Type": "application/json",
-      "User-Agent": "foodrush-server/1.0",
-    },
-    body: JSON.stringify({ search_term: q }),
-  });
+  const supabase = createClient(supabaseUrl, anonKey);
 
-  const data = await res.json().catch(() => null);
+  const { data, error } = await supabase.rpc("search_items", { query });
 
-  if (res.status !== 200) {
+  if (error) {
     return NextResponse.json(
-      { items: [], error: (data as { message?: string })?.message ?? "Search failed." },
+      { items: [], error: error.message ?? "Search failed." },
       { status: 200 }
     );
   }

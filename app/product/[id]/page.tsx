@@ -7,6 +7,8 @@ import { ArrowLeft, Plus, ShieldAlert, ShoppingBag, Star } from "lucide-react";
 
 import { Logo } from "@/components/ui/Logo";
 import { Button } from "@/components/ui/Button";
+import { UserMenu } from "@/components/ui/UserMenu";
+import { useCart } from "@/lib/cart";
 
 type MenuItem = {
   id: string;
@@ -38,7 +40,15 @@ export default function ProductPage() {
   const [rating, setRating] = useState(5);
   const [posting, setPosting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { add: addToCart, count: cartCount } = useCart();
   const [added, setAdded] = useState(false);
+
+  const addItem = useCallback(() => {
+    if (!item) return;
+    addToCart({ id: item.id, name: item.name, price: item.price });
+    setAdded(true);
+    setTimeout(() => setAdded(false), 900);
+  }, [item, addToCart]);
 
   useEffect(() => {
     let active = true;
@@ -88,21 +98,6 @@ export default function ProductPage() {
     [params.id, author, content, rating]
   );
 
-  const addToCart = useCallback(() => {
-    if (!item) return;
-    const cart = JSON.parse(localStorage.getItem("foodrush_cart") ?? "[]") as {
-      id: string;
-      name: string;
-      price: number;
-      qty: number;
-    }[];
-    const existing = cart.find((c) => c.id === item.id);
-    if (existing) existing.qty += 1;
-    else cart.push({ id: item.id, name: item.name, price: item.price, qty: 1 });
-    localStorage.setItem("foodrush_cart", JSON.stringify(cart));
-    setAdded(true);
-  }, [item]);
-
   const avgRating = useMemo(() => {
     if (reviews.length === 0) return null;
     return (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1);
@@ -121,11 +116,17 @@ export default function ProductPage() {
         <nav className="flex items-center gap-3">
           <Link
             href="/cart"
-            className="focus-ring inline-flex items-center gap-2 rounded-full border border-beige-200 bg-white px-4 py-2 text-sm font-semibold text-ink-700 transition-colors hover:border-primary-300 hover:text-primary-600"
+            className="focus-ring relative inline-flex items-center gap-2 rounded-full border border-beige-200 bg-white px-4 py-2 text-sm font-semibold text-ink-700 transition-colors hover:border-primary-300 hover:text-primary-600"
           >
             <ShoppingBag className="size-4" />
             Cart
+            {cartCount > 0 && (
+              <span className="absolute -right-1 -top-1 grid min-w-5 place-items-center rounded-full bg-primary-600 px-1 text-[11px] font-bold text-white shadow-glow">
+                {cartCount}
+              </span>
+            )}
           </Link>
+          <UserMenu />
         </nav>
       </header>
 
@@ -171,7 +172,7 @@ export default function ProductPage() {
                   <span className="text-3xl font-extrabold text-ink-900">
                     ₹{Number(item.price).toFixed(2)}
                   </span>
-                  <Button onClick={addToCart} className={added ? "!bg-sage-500" : undefined}>
+                  <Button onClick={addItem} className={added ? "!bg-sage-500" : undefined}>
                     <Plus className="size-4" />
                     {added ? "Added to cart ✓" : "Add to cart"}
                   </Button>
