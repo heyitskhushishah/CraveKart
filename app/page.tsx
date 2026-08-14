@@ -39,7 +39,7 @@ export default function HomePage() {
           burgers to soul-warming bowls.
         </p>
         <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
-          <Link href="/register">
+          <Link href="/menu">
             <Button size="lg">
               Order now <ArrowRight className="size-4" />
             </Button>
@@ -50,6 +50,15 @@ export default function HomePage() {
             </Button>
           </Link>
         </div>
+
+        <footer className="mt-16 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-ink-500">
+          <Link href="/menu" className="transition-colors hover:text-primary-600">Menu</Link>
+          <Link href="/orders" className="transition-colors hover:text-primary-600">Orders</Link>
+          <Link href="/track" className="transition-colors hover:text-primary-600">Track</Link>
+          <Link href="/admin" className="transition-colors hover:text-primary-600">Admin</Link>
+          <Link href="/profile" className="transition-colors hover:text-primary-600">Profile</Link>
+          <Link href="/cart" className="transition-colors hover:text-primary-600">Cart</Link>
+        </footer>
       </main>
     </div>
   );

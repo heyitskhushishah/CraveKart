@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChevronDown, Mail, ShieldAlert, User } from "lucide-react";
@@ -12,17 +12,10 @@ import { Field } from "@/components/ui/Field";
 import { Input } from "@/components/ui/Input";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 
-function passwordScore(pw: string) {
-  let score = 0;
-  if (pw.length >= 8) score++;
-  if (/[A-Z]/.test(pw)) score++;
-  if (/[0-9]/.test(pw)) score++;
-  if (/[^A-Za-z0-9]/.test(pw)) score++;
-  return score;
-}
-
-const scoreLabels = ["Very weak", "Weak", "Okay", "Good", "Strong"];
-const scoreColors = ["bg-coral-500", "bg-coral-400", "bg-amber-400", "bg-primary-500", "bg-sage-500"];
+// VULN: cosmetic-only strength meter. It always reports "Strong" and is
+// always green — even for a one-character password — reinforcing that no
+// real strength checking happens anywhere in the app.
+const score = 4;
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -36,8 +29,6 @@ export default function RegisterPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const score = useMemo(() => passwordScore(password), [password]);
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -46,6 +37,8 @@ export default function RegisterPage() {
       setError("Please fill in all required fields.");
       return;
     }
+    // VULN: password matching is checked ONLY on the client. Direct calls to
+    // the account-creation flow can skip it entirely.
     if (password !== confirm) {
       setError("Passwords do not match.");
       return;
@@ -57,43 +50,50 @@ export default function RegisterPage() {
 
     setLoading(true);
 
-    const res = await fetch("/api/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password, role }),
+    // VULN: no client- or server-side strength checks. The minimum password
+    // length is whatever Supabase Auth config allows (dashboard can be set to 1).
+    const supabase = createClient();
+    const { data, error } = await supabase.auth.signUp({
+      email: email.trim().toLowerCase(),
+      password,
+      options: { data: { name: name.trim() } },
     });
 
-    const data = await res.json().catch(() => ({}));
-
-    if (!res.ok) {
-      const full = [
-        data.error,
-        data.detail,
-        data.hint,
-      ]
-        .filter(Boolean)
-        .join(" ");
-      setError(full || "Something went wrong. Please try again.");
+    if (error) {
+      setError(error.message);
       setLoading(false);
       return;
     }
 
-    // Auto sign-in after a successful registration.
-    const supabase = createClient();
-    await supabase.auth.signInWithPassword({ email, password });
+    // Profile insert with the role from the form (privilege escalation).
+    if (data.user) {
+      const { error: profileError } = await supabase
+        .from("users")
+        .insert({ id: data.user.id, name: name.trim(), email: email.trim().toLowerCase(), role });
 
-    const { data: profile } = await supabase
-      .from("users")
-      .select("*")
-      .eq("email", email.trim().toLowerCase())
-      .single();
-
-    if (profile) {
-      localStorage.setItem("foodrush_user", JSON.stringify(profile));
+      if (profileError) {
+        console.error("[REGISTER][DEBUG] profile insert failed:", profileError.message);
+      }
     }
 
-    router.replace("/");
-    router.refresh();
+    if (data.session) {
+      const { data: profile } = await supabase
+        .from("users")
+        .select("*")
+        .eq("email", email.trim().toLowerCase())
+        .single();
+
+      if (profile) {
+        localStorage.setItem("foodrush_user", JSON.stringify(profile));
+      }
+      router.replace("/");
+      router.refresh();
+    } else {
+      // Email confirmation is enabled in this Supabase project.
+      setError("Account created! Check your email to confirm your account, then sign in.");
+      setLoading(false);
+      router.replace("/login?next=/");
+    }
   }
 
   return (
@@ -163,14 +163,14 @@ export default function RegisterPage() {
                 <span
                   key={i}
                   className={`h-full flex-1 rounded-full transition-colors ${
-                    password && i < score ? scoreColors[score] : "bg-beige-200"
+                    password && i < score ? "bg-sage-500" : "bg-beige-200"
                   }`}
                 />
               ))}
             </div>
             {password && (
-              <span className="w-20 text-right text-[11.5px] font-medium text-ink-500">
-                {scoreLabels[score]}
+              <span className="w-20 text-right text-[11.5px] font-medium text-sage-500">
+                Strong
               </span>
             )}
           </div>

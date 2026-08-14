@@ -1,84 +1,18 @@
 -- ============================================================
 -- FoodRush migration 003: seed data
--- Idempotent (on conflict do nothing). The demo auth-user block
--- is exception-safe: on plain Postgres (no auth schema) it warns
--- and continues, so the rest of the seed still applies.
+-- Idempotent (on conflict do nothing). Demo auth users are created
+-- through the GoTrue Admin API (scripts/seed-demo-users.mjs), never
+-- by raw SQL — hand-written auth.users rows break GoTrue login.
 -- ============================================================
 
 -- ------------------------------------------------------------
 -- DEMO AUTH USERS  (Supabase Auth schema)
+-- NOTE: demo users must be created through the GoTrue Admin API, NOT by
+-- raw SQL inserts into auth.users — hand-written auth rows break GoTrue
+-- login ("Database error querying schema"). Run the seed script instead:
+--     node --env-file=.env.local scripts/seed-demo-users.mjs
+-- This migration only seeds the matching public profiles below.
 -- ------------------------------------------------------------
-do $$
-begin
-  insert into auth.users (
-    instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
-    raw_app_meta_data, raw_user_meta_data, created_at, updated_at
-  ) values
-  (
-    '00000000-0000-0000-0000-000000000000',
-    '00000000-0000-4000-8000-000000000001',
-    'authenticated', 'authenticated',
-    'admin@foodrush.app',
-    crypt('admin123', gen_salt('bf')),
-    now(),
-    '{"provider":"email","providers":["email"]}'::jsonb,
-    '{"name":"Ava Admin"}'::jsonb,
-    now(), now()
-  ),
-  (
-    '00000000-0000-0000-0000-000000000000',
-    '00000000-0000-4000-8000-000000000002',
-    'authenticated', 'authenticated',
-    'priya@foodrush.app',
-    crypt('priya123', gen_salt('bf')),
-    now(),
-    '{"provider":"email","providers":["email"]}'::jsonb,
-    '{"name":"Priya Sharma"}'::jsonb,
-    now(), now()
-  ),
-  (
-    '00000000-0000-0000-0000-000000000000',
-    '00000000-0000-4000-8000-000000000003',
-    'authenticated', 'authenticated',
-    'alex@foodrush.app',
-    crypt('alex123', gen_salt('bf')),
-    now(),
-    '{"provider":"email","providers":["email"]}'::jsonb,
-    '{"name":"Alex Rivera"}'::jsonb,
-    now(), now()
-  )
-  on conflict (id) do nothing;
-
-  insert into auth.identities (
-    id, provider_id, user_id, identity_data, provider, last_sign_in_at, created_at, updated_at
-  ) values
-  (
-    gen_random_uuid(),
-    '00000000-0000-4000-8000-000000000001',
-    '00000000-0000-4000-8000-000000000001',
-    jsonb_build_object('sub', '00000000-0000-4000-8000-000000000001', 'email', 'admin@foodrush.app', 'email_verified', true),
-    'email', now(), now(), now()
-  ),
-  (
-    gen_random_uuid(),
-    '00000000-0000-4000-8000-000000000002',
-    '00000000-0000-4000-8000-000000000002',
-    jsonb_build_object('sub', '00000000-0000-4000-8000-000000000002', 'email', 'priya@foodrush.app', 'email_verified', true),
-    'email', now(), now(), now()
-  ),
-  (
-    gen_random_uuid(),
-    '00000000-0000-4000-8000-000000000003',
-    '00000000-0000-4000-8000-000000000003',
-    jsonb_build_object('sub', '00000000-0000-4000-8000-000000000003', 'email', 'alex@foodrush.app', 'email_verified', true),
-    'email', now(), now(), now()
-  )
-  on conflict (id) do nothing;
-
-  raise notice 'Demo auth users seeded OK';
-exception when others then
-  raise notice 'Demo auth users NOT seeded: % (non-Supabase DB? core tables are fine)', sqlerrm;
-end $$;
 
 -- ------------------------------------------------------------
 -- DEMO PROFILES  (public.users)

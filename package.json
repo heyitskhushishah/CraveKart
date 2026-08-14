@@ -6,7 +6,9 @@
     "dev": "next dev --webpack",
     "build": "next build --webpack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:seed-auth": "node --env-file=.env.local scripts/seed-demo-users.mjs",
+    "db:migrate": "supabase db push --include-all --yes"
   },
   "dependencies": {
     "@supabase/ssr": "^0.6.1",

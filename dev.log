@@ -2,14 +2,55 @@
 > foodrush@0.1.0 dev
 > next dev --webpack
 
-⚠ Port 3000 is in use by process 26512, using available port 3001 instead.
 ▲ Next.js 16.3.1 (webpack)
-- Local:         http://localhost:3001
-- Network:       http://192.168.56.1:3001
+- Local:         http://localhost:3000
+- Network:       http://192.168.56.1:3000
 - Environments: .env.local
-✓ Ready in 1244ms
+✓ Ready in 549ms
 ⚠ Attempted to load @next/swc-win32-x64-msvc, but an error occurred: \\?\C:\projects\CraveKart\node_modules\@next\swc-win32-x64-msvc\next-swc.win32-x64-msvc.node is not a valid Win32 application.
 \\?\C:\projects\CraveKart\node_modules\@next\swc-win32-x64-msvc\next-swc.win32-x64-msvc.node
-✓ Running next.config.ts took 280ms
+✓ Running next.config.ts took 206ms
   Skipping creating a lockfile at C:\projects\CraveKart\.next\dev\lock because we're using WASM bindings
 
+ GET /api/search?q=pizza 200 in 2.7s (next.js: 1152ms, application-code: 1587ms)
+ GET /api/search?q=x'%20or%201%3D1-- 200 in 248ms (next.js: 7ms, application-code: 241ms)
+ GET /api/restaurants 200 in 1099ms (next.js: 384ms, application-code: 715ms)
+ GET /api/product/00000000-0000-4000-a000-000000000005 200 in 1875ms (next.js: 812ms, application-code: 1063ms)
+ POST /api/reviews 200 in 626ms (next.js: 322ms, application-code: 304ms)
+ GET /menu 200 in 1875ms (next.js: 1671ms, application-code: 204ms)
+ GET /product/00000000-0000-4000-a000-000000000005 200 in 1856ms (next.js: 1743ms, application-code: 114ms)
+ POST /api/checkout 200 in 1558ms (next.js: 468ms, application-code: 1090ms)
+ GET /api/orders/f3926a3e-8813-4c44-8a32-505a50277b4d 200 in 1224ms (next.js: 1031ms, application-code: 193ms)
+ GET /api/coupon?code=FRESH10 200 in 698ms (next.js: 222ms, application-code: 476ms)
+ GET /api/coupon?code=x'%20OR%20'1'%3D'1 200 in 121ms (next.js: 7ms, application-code: 114ms)
+ GET /cart 200 in 1066ms (next.js: 954ms, application-code: 113ms)
+ GET /orders 200 in 450ms (next.js: 360ms, application-code: 90ms)
+ GET /api/admin/users 200 in 1504ms (next.js: 229ms, application-code: 1274ms)
+ GET /api/track?url=http://localhost:3000/api/admin/users 200 in 2.0s (next.js: 475ms, application-code: 1538ms)
+ GET /api/receipt?filename=sample-receipt.txt 200 in 196ms (next.js: 182ms, application-code: 14ms)
+ GET /api/receipt?filename=..%2F..%2F.env.local 200 in 7ms (next.js: 2ms, application-code: 5ms)
+ POST /api/webhook 200 in 855ms (next.js: 230ms, application-code: 625ms)
+ POST /api/webhook 200 in 135ms (next.js: 4ms, application-code: 131ms)
+ POST /api/webhook 200 in 173ms (next.js: 8ms, application-code: 165ms)
+ GET /api/profile?current=admin%40foodrush.app&email=admin%40foodrush.app 200 in 1308ms (next.js: 317ms, application-code: 991ms)
+ GET /track 200 in 937ms (next.js: 831ms, application-code: 106ms)
+ GET /profile 200 in 510ms (next.js: 408ms, application-code: 103ms)
+ GET /admin 200 in 561ms (next.js: 506ms, application-code: 55ms)
+ GET / 200 in 726ms (next.js: 586ms, application-code: 140ms)
+ GET /login 200 in 1630ms (next.js: 1486ms, application-code: 144ms)
+ GET /register 200 in 534ms (next.js: 381ms, application-code: 153ms)
+ GET /menu 200 in 447ms (next.js: 384ms, application-code: 63ms)
+ GET /product/00000000-0000-4000-a000-000000000005 200 in 507ms (next.js: 440ms, application-code: 67ms)
+ GET /cart 200 in 462ms (next.js: 398ms, application-code: 64ms)
+ GET /orders 200 in 367ms (next.js: 311ms, application-code: 56ms)
+ GET /orders/00000000-0000-4000-b000-000000000001 200 in 1334ms (next.js: 1261ms, application-code: 73ms)
+ GET /admin 200 in 1342ms (next.js: 1272ms, application-code: 69ms)
+ GET /track 200 in 510ms (next.js: 451ms, application-code: 59ms)
+ GET /profile 200 in 636ms (next.js: 577ms, application-code: 59ms)
+ GET /api/search?q=x'%20or%201%3D1-- 200 in 1557ms (next.js: 711ms, application-code: 846ms)
+ GET /api/coupon?code=x'%20OR%20'1'%3D'1 200 in 621ms (next.js: 451ms, application-code: 169ms)
+ GET /api/orders 200 in 544ms (next.js: 396ms, application-code: 148ms)
+ GET /api/track?url=http://localhost:3000/api/orders 200 in 1126ms (next.js: 560ms, application-code: 566ms)
+ GET /api/receipt?filename=..%2F..%2Fpackage.json 200 in 516ms (next.js: 504ms, application-code: 11ms)
+ GET /api/orders/00000000-0000-4000-b000-000000000001 200 in 599ms (next.js: 436ms, application-code: 163ms)
+ GET / 200 in 530ms (next.js: 198ms, application-code: 332ms)

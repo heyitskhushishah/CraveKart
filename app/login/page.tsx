@@ -40,39 +40,48 @@ function LoginContent() {
     }
 
     setLoading(true);
-    const supabase = createClient();
-    const normalized = email.trim().toLowerCase();
 
-    // NOTE: pre-check leaks whether an account exists (user enumeration).
-    const { data: existing } = await supabase
-      .from("users")
-      .select("email")
-      .eq("email", normalized)
-      .maybeSingle();
+    // Login is routed through a custom API route (VULN 2) so the auth endpoint
+    // is hit server-side with the service-role key — no app-level rate limiting.
+    const res = await fetch("/api/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password, remember }),
+    });
 
-    if (!existing) {
-      setError("No account found with that email. Try creating one.");
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      setError(data.error ?? "Login failed. Please try again.");
       setLoading(false);
       return;
     }
 
-    const { error: authError } = await supabase.auth.signInWithPassword({
-      email: normalized,
-      password,
-    });
+    const supabase = createClient();
 
-    if (authError) {
-      setError("Incorrect password for this account.");
-      setLoading(false);
-      return;
+    // VULN 4: "Remember me" stores the raw access token in localStorage
+    // (readable via localStorage.getItem("foodrush_access_token") or XSS)
+    // instead of an httpOnly cookie.
+    if (data.session?.access_token) {
+      if (remember) {
+        localStorage.setItem("foodrush_access_token", data.session.access_token);
+      }
+      await supabase.auth.setSession({
+        access_token: data.session.access_token,
+        refresh_token: data.session.refresh_token,
+      });
     }
 
     // Profile (incl. role) is trusted from the client — stored in localStorage.
-    const { data: profile } = await supabase
-      .from("users")
-      .select("*")
-      .eq("email", normalized)
-      .single();
+    const profile =
+      data.profile ??
+      (
+        await supabase
+          .from("users")
+          .select("*")
+          .eq("email", email.trim().toLowerCase())
+          .single()
+      ).data;
 
     if (profile) {
       localStorage.setItem("foodrush_user", JSON.stringify(profile));

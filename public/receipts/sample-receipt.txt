@@ -1,0 +1,7 @@
+FoodRush Demo Receipt
+=====================
+Order: demo-0001
+Items: Margherita Pizza x2
+Total: Rs. 19.98
+Paid:  4111 1111 1111 1111
+Status: Paid
