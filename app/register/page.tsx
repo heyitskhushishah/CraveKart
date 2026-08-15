@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronDown, Mail, ShieldAlert, User } from "lucide-react";
+import { ChevronDown, Mail, User } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
 import { AuthShell } from "@/components/auth/AuthShell";
@@ -101,7 +101,7 @@ export default function RegisterPage() {
       title="Create your account"
       subtitle={
         <>
-          Join FoodRush and get the best food in town, delivered in minutes.
+          Join CraveKart and get the best food in town, delivered in minutes.
         </>
       }
       footer={
@@ -201,10 +201,6 @@ export default function RegisterPage() {
             </select>
             <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
           </div>
-          <p className="flex items-center gap-1.5 pt-1 text-[12px] text-ink-400">
-            <ShieldAlert className="size-3.5" />
-            Demo environment — all roles are available to select.
-          </p>
         </Field>
 
         <label className="flex cursor-pointer select-none items-start gap-2.5 text-sm text-ink-500">

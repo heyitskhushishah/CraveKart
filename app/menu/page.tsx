@@ -118,7 +118,7 @@ export default function MenuPage() {
       <div className="animate-blob absolute -right-24 top-0 size-96 rounded-full bg-primary-200/50 blur-3xl" />
 
       <header className="relative z-10 flex items-center justify-between px-6 py-5 sm:px-10">
-        <Link href="/" aria-label="FoodRush home">
+        <Link href="/" aria-label="CraveKart home">
           <Logo size="md" />
         </Link>
         <nav className="flex items-center gap-3">
@@ -163,12 +163,6 @@ export default function MenuPage() {
             <MapPin className="size-3.5 text-primary-600" />
             1.2 km · {restaurants.length} restaurants near you
           </span>
-          <p className="text-xs text-ink-400">
-            Demo hint: try{" "}
-            <code className="rounded-md bg-beige-200 px-1.5 py-0.5 text-[13px] text-ink-700">
-              %&apos; or 1=1--
-            </code>
-          </p>
         </div>
 
         {/* Filter chips — horizontal scroll, active = highlighted */}
@@ -230,7 +224,7 @@ export default function MenuPage() {
               </div>
               <p className="mt-6 text-xl font-bold text-ink-900">No dishes found</p>
               <p className="mt-1 text-sm text-ink-500">
-                Try a different search — or a dash of SQL magic.
+                Try a different search.
               </p>
             </div>
           ) : (

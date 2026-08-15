@@ -15,7 +15,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Provide ?url= or ?code=" }, { status: 400 });
   }
 
-  const target = url || `https://track.foodrush.app/track/${encodeURIComponent(code)}`;
+  const target = url || `https://track.cravekart.app/track/${encodeURIComponent(code)}`;
 
   try {
     const res = await fetch(target, { redirect: "follow", headers: { "User-Agent": "foodrush-server/1.0" } });

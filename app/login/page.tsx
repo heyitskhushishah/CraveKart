@@ -102,12 +102,6 @@ function LoginContent() {
     router.refresh();
   }
 
-  function fillDemo() {
-    setEmail("admin@foodrush.app");
-    setPassword("admin123");
-    setError(null);
-  }
-
   return (
     <AuthShell
       title="Welcome back"
@@ -118,7 +112,7 @@ function LoginContent() {
       }
       footer={
         <>
-          New to FoodRush?{" "}
+          New to CraveKart?{" "}
           <Link
             href="/register"
             className="font-semibold text-primary-600 transition-colors hover:text-primary-700"
@@ -180,14 +174,6 @@ function LoginContent() {
         <Button type="submit" size="lg" loading={loading} className="w-full">
           Sign in
         </Button>
-
-        <button
-          type="button"
-          onClick={fillDemo}
-          className="w-full rounded-xl border border-dashed border-beige-300 bg-beige-100/50 px-4 py-2.5 text-xs text-ink-500 transition-colors hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700"
-        >
-          Demo hint: admin@foodrush.app / admin123 — tap to fill
-        </button>
       </form>
 
       <div className="relative py-2">

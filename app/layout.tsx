@@ -10,11 +10,11 @@ const plusJakarta = Plus_Jakarta_Sans({
 
 export const metadata: Metadata = {
   title: {
-    default: "FoodRush — Delicious food, delivered fast",
-    template: "%s · FoodRush",
+    default: "CraveKart — Delicious food, delivered fast",
+    template: "%s · CraveKart",
   },
   description:
-    "Order mouth-watering meals from the best restaurants in town and get them delivered hot to your door. FoodRush.",
+    "Order mouth-watering meals from the best restaurants in town and get them delivered hot to your door. CraveKart.",
 };
 
 export default function RootLayout({

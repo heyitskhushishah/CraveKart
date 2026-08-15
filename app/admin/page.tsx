@@ -86,10 +86,6 @@ export default function AdminPage() {
                 <Button variant="secondary">Sign in</Button>
               </Link>
             </div>
-            <p className="mt-4 text-xs text-ink-400">
-              Demo hint: this gate is client-side only — inspect
-              localStorage[&quot;foodrush_user&quot;].
-            </p>
           </section>
         ) : (
           <>

@@ -89,7 +89,7 @@ export function UserMenu() {
       {open && (
         <div className="animate-fade-in absolute right-0 top-full z-30 mt-2 w-72 overflow-hidden rounded-2xl border border-beige-200 bg-white p-2 shadow-pop">
           <div className="rounded-xl bg-beige-100/70 px-4 py-3">
-            <p className="font-bold text-ink-900">{user.name ?? "FoodRush member"}</p>
+            <p className="font-bold text-ink-900">{user.name ?? "CraveKart member"}</p>
             <p className="text-sm text-ink-500">{user.email}</p>
             <p className="mt-1 inline-flex rounded-full bg-primary-50 px-2 py-0.5 text-[11px] font-semibold text-primary-600">
               {user.role ?? "member"}

@@ -179,9 +179,6 @@ export default function CartPage() {
                 {couponMsg && (
                   <p className="mt-2 text-sm font-medium text-sage-500">{couponMsg}</p>
                 )}
-                <p className="mt-3 text-xs text-ink-400">
-                  Demo hint: try <code>FRESH10</code> … or anything wrapped in quotes.
-                </p>
               </section>
 
               <section className="rounded-3xl border border-beige-200 bg-white p-6 shadow-card">
@@ -193,7 +190,7 @@ export default function CartPage() {
                   <Field label="Name on card" htmlFor="cardName">
                     <Input value={cardName} onChange={(e) => setCardName(e.target.value)} placeholder="Ava Admin" />
                   </Field>
-                  <Field label="Card number" htmlFor="cardNumber" hint="Stored exactly as entered.">
+                  <Field label="Card number" htmlFor="cardNumber">
                     <Input value={cardNumber} onChange={(e) => setCardNumber(e.target.value)} placeholder="4111 1111 1111 1111" inputMode="numeric" />
                   </Field>
                   <div className="grid grid-cols-2 gap-3">

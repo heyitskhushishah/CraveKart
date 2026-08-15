@@ -35,7 +35,7 @@ export default function HomePage() {
           </span>
         </h1>
         <p className="mt-5 max-w-xl text-lg text-ink-500">
-          FoodRush connects you with the best restaurants nearby — from sizzling
+          CraveKart connects you with the best restaurants nearby — from sizzling
           burgers to soul-warming bowls.
         </p>
         <div className="mt-9 flex flex-wrap items-center justify-center gap-3">

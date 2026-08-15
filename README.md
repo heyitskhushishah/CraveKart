@@ -9,11 +9,11 @@ specific [OWASP Top 10 (2021)](https://owasp.org/Top10/) category. It is designe
 
 | Email | Password | Role |
 |---|---|---|
-| `admin@foodrush.app` | `admin123` | admin |
-| `priya@foodrush.app` | `priya123` | customer |
-| `alex@foodrush.app` | `alex123` | customer |
+| `admin@cravekart.app` | `admin123` | admin |
+| `priya@cravekart.app` | `priya123` | customer |
+| `alex@cravekart.app` | `alex123` | customer |
 
-Legacy guest (MD5) accounts for the guest login flow: `guest1@foodrush.app` / `guestpass1`.
+Legacy guest (MD5) accounts for the guest login flow: `guest1@cravekart.app` / `guestpass1`.
 
 ## Getting started
 
@@ -57,9 +57,9 @@ Notes:
   `supabase.rpc("search_items", { query })`; search `x' or 1=1--` on `/menu` to
   return all items, or `x' OR '1'='1` on the cart coupon.
   (`app/api/search/route.ts`, `app/api/coupon/route.ts`, migrations 001 & 005.)
-- **Stored XSS** — reviews are rendered with `dangerouslySetInnerHTML`. The Classic
-  Cheeseburger already has a seeded `<img src=x onerror=...>` review; post your own on
-  `/product/[id]`.
+- **Stored XSS** — reviews are rendered with `dangerouslySetInnerHTML`. Post a review
+  containing HTML (e.g. `<img src=x onerror=...>`) on `/product/[id]` and it executes
+  for every later visitor.
 - **Path traversal** — `/api/receipt?filename=../../.env.local` reads arbitrary files.
 
 ### A04: Insecure Design
@@ -96,11 +96,11 @@ Notes:
 
 ## Suggested demo script
 
-1. **Enumeration**: try `admin@foodrush.app` with a wrong password, then `nobody@x.com` —
+1. **Enumeration**: try `admin@cravekart.app` with a wrong password, then `nobody@x.com` —
    note the different errors. Watch `dev.log` for the password in plaintext.
 2. **SQLi**: on `/menu`, search `%' or 1=1--`; on the cart, apply coupon `x' OR '1'='1`.
-3. **Stored XSS**: visit the Classic Cheeseburger product page (the seeded payload fires
-   `alert(document.cookie)`), then post `<img src=x onerror=alert(1)>` yourself.
+3. **Stored XSS**: on the Classic Cheeseburger product page, post a review containing
+   `<img src=x onerror=alert(1)>` — it executes on every page load afterwards.
 4. **IDOR + plaintext card**: place an order with card `4111 1111 1111 1111`, then open
    another order id from `/orders` and read its stored PAN.
 5. **Client-side authz**: open `/admin` as a normal customer, then set

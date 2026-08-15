@@ -22,7 +22,7 @@ grant all on table public.legacy_accounts to anon, authenticated, service_role;
 -- rainbow tables). MD5 of 'guestpass1' is 9a0b9c4d9f0f4d74a1f0b1f0c1d2e3f4 —
 -- these are deliberately guessable.
 insert into public.legacy_accounts (guest_email, password_hash) values
-('guest1@foodrush.app', md5('guestpass1')),
-('guest2@foodrush.app', md5('letmein2026')),
-('guest3@foodrush.app', md5('password123'))
+('guest1@cravekart.app', md5('guestpass1')),
+('guest2@cravekart.app', md5('letmein2026')),
+('guest3@cravekart.app', md5('password123'))
 on conflict (guest_email) do nothing;

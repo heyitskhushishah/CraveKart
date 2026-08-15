@@ -9,12 +9,18 @@ const supabase = createClient(
 );
 
 const demoUsers = [
-  { email: "admin@foodrush.app", password: "admin123", name: "Ava Admin" },
-  { email: "priya@foodrush.app", password: "priya123", name: "Priya Sharma" },
-  { email: "alex@foodrush.app", password: "alex123", name: "Alex Rivera" },
+  { email: "admin@cravekart.app", password: "admin123", name: "Ava Admin" },
+  { email: "priya@cravekart.app", password: "priya123", name: "Priya Sharma" },
+  { email: "alex@cravekart.app", password: "alex123", name: "Alex Rivera" },
 ];
 
 const { data: listed } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 });
+
+for (const u of listed.users) {
+  if (u.email?.endsWith("@foodrush.app")) {
+    await supabase.auth.admin.deleteUser(u.id);
+  }
+}
 
 for (const u of demoUsers) {
   const existing = listed.users.find((x) => x.email === u.email);

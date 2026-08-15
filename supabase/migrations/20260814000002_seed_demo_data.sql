@@ -20,9 +20,9 @@
 do $$
 begin
   insert into public.users (id, email, name, role, password_md5) values
-  ('00000000-0000-4000-8000-000000000001', 'admin@foodrush.app', 'Ava Admin', 'admin',    md5('admin123')),
-  ('00000000-0000-4000-8000-000000000002', 'priya@foodrush.app', 'Priya Sharma', 'customer', md5('priya123')),
-  ('00000000-0000-4000-8000-000000000003', 'alex@foodrush.app', 'Alex Rivera', 'customer', md5('alex123'))
+  ('00000000-0000-4000-8000-000000000001', 'admin@cravekart.app', 'Ava Admin', 'admin',    md5('admin123')),
+  ('00000000-0000-4000-8000-000000000002', 'priya@cravekart.app', 'Priya Sharma', 'customer', md5('priya123')),
+  ('00000000-0000-4000-8000-000000000003', 'alex@cravekart.app', 'Alex Rivera', 'customer', md5('alex123'))
   on conflict (id) do nothing;
   raise notice 'Demo profiles seeded OK';
 exception when others then
@@ -82,6 +82,6 @@ on conflict (id) do nothing;
 -- ------------------------------------------------------------
 insert into public.reviews (product_id, user_id, author, content, rating) values
 ('00000000-0000-4000-a000-000000000001', '00000000-0000-4000-8000-000000000002', 'Priya', 'Absolutely divine! The cheese pull is unreal. 😍', 5),
-('00000000-0000-4000-a000-000000000005', '00000000-0000-4000-8000-000000000003', 'Alex', '<img src=x onerror="alert(document.cookie)"> Best burger in town, hands down.', 5),
+('00000000-0000-4000-a000-000000000005', '00000000-0000-4000-8000-000000000003', 'Alex', 'Smash patty, melty cheddar, that sauce — this one never misses.', 5),
 ('00000000-0000-4000-a000-000000000009', '00000000-0000-4000-8000-000000000002', 'Priya', 'Rich, buttery, perfect with naan.', 5)
 on conflict (id) do nothing;

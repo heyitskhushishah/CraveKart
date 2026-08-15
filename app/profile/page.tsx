@@ -75,11 +75,6 @@ export default function ProfilePage() {
               {result.message}
             </p>
           )}
-          <p className="mt-4 text-xs text-ink-400">
-            Demo hint: this change happens over a plain GET with no CSRF token —
-            an attacker page can change your email with just{" "}
-            <code>{`<img src="/api/profile?current=…&email=…">`}</code>
-          </p>
         </section>
       </main>
     </div>

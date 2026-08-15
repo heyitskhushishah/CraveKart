@@ -69,7 +69,7 @@ export function AuthShell({
               </span>
             </h1>
             <p className="text-lg leading-relaxed text-ink-500">
-              FoodRush brings the best kitchens in town straight to your table —
+              CraveKart brings the best kitchens in town straight to your table —
               crispy, hot, and on time.
             </p>
           </div>
@@ -112,7 +112,7 @@ export function AuthShell({
         </div>
 
         <p className="relative z-10 text-sm text-ink-400">
-          © {new Date().getFullYear()} FoodRush · Crafted for hungry humans.
+          © {new Date().getFullYear()} CraveKart · Crafted for hungry humans.
         </p>
       </aside>
 

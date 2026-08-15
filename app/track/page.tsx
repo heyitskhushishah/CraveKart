@@ -51,18 +51,12 @@ export default function TrackPage() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && lookUp()}
-            placeholder="https://track.foodrush.app/ABC123"
+            placeholder="https://track.cravekart.app/ABC123"
             className="focus-ring h-12 w-full rounded-full border border-beige-200 bg-cream px-5 text-sm text-ink-900 placeholder:text-ink-400"
           />
           <Button className="mt-4 w-full" loading={loading} onClick={lookUp}>
             Track now
           </Button>
-          <p className="mt-4 text-xs text-ink-400">
-            Demo ideas:{" "}
-            <code>http://localhost:3000/api/admin/users</code> ·{" "}
-            <code>http://169.254.169.254/latest/meta-data/</code> ·{" "}
-            <code>file:///etc/passwd</code>
-          </p>
         </div>
 
         {result && (
