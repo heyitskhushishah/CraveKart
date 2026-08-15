@@ -2,9 +2,22 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { Check, LayoutDashboard, MapPin, Plus, Search, ShoppingBag, SlidersHorizontal, Star, Timer } from "lucide-react";
+import {
+  Check,
+  LayoutDashboard,
+  MapPin,
+  Plus,
+  Search,
+  ShoppingBag,
+  SlidersHorizontal,
+  Star,
+  Timer,
+} from "lucide-react";
 
 import { Logo } from "@/components/ui/Logo";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Badge } from "@/components/ui/Badge";
 import dynamic from "next/dynamic";
 const UserMenu = dynamic(
   () => import("@/components/ui/UserMenu").then((m) => m.UserMenu),
@@ -40,6 +53,30 @@ const PRICE_RANGES: PriceRange[] = [
   { id: "5to9", label: "₹5 – ₹9", min: 5, max: 9 },
   { id: "9plus", label: "₹9+", min: 9, max: Infinity },
 ];
+
+function FilterChip({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      aria-pressed={active}
+      className={`focus-ring flex shrink-0 items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-semibold transition-all duration-150 active:scale-95 ${
+        active
+          ? "border-primary-600 bg-primary-600 text-white shadow-glow"
+          : "border-beige-200 bg-white/80 text-ink-700 shadow-soft hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
 
 export default function MenuPage() {
   const [query, setQuery] = useState("");
@@ -121,57 +158,100 @@ export default function MenuPage() {
     <div className="relative flex min-h-screen flex-col overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-cream via-beige-100 to-primary-100" />
       <div className="animate-blob absolute -right-24 top-0 size-96 rounded-full bg-primary-200/50 blur-3xl" />
+      <div className="animate-blob absolute -left-24 top-1/2 size-80 rounded-full bg-coral-400/10 blur-3xl [animation-delay:-8s]" />
 
-      <header className="relative z-10 flex items-center justify-between px-6 py-5 sm:px-10">
-        <Link href="/" aria-label="CraveKart home">
-          <Logo size="md" />
-        </Link>
-        <nav className="flex items-center gap-3">
-          {isAdmin ? (
-            <Link
-              href="/admin"
-              className="focus-ring inline-flex items-center gap-2 rounded-full border border-beige-200 bg-white px-4 py-2 text-sm font-semibold text-ink-700 transition-colors hover:border-primary-300 hover:text-primary-600"
-            >
-              <LayoutDashboard className="size-4" />
-              Admin
-            </Link>
-          ) : (
-            <Link
-              href="/cart"
-              className="focus-ring relative inline-flex items-center gap-2 rounded-full border border-beige-200 bg-white px-4 py-2 text-sm font-semibold text-ink-700 transition-colors hover:border-primary-300 hover:text-primary-600"
-            >
-              <ShoppingBag className="size-4" />
-              Cart
-              {cartCount > 0 && (
-                <span className="absolute -right-1 -top-1 grid min-w-5 place-items-center rounded-full bg-primary-600 px-1 text-[11px] font-bold text-white shadow-glow">
-                  {cartCount}
-                </span>
-              )}
-            </Link>
-          )}
-          <UserMenu />
-        </nav>
+      <header className="relative z-30 border-b border-white/50">
+        <div className="glass mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-3.5 sm:px-6">
+          <Link href="/" aria-label="CraveKart home" className="focus-ring rounded-xl">
+            <Logo size="md" />
+          </Link>
+          <nav className="flex items-center gap-2.5">
+            {isAdmin ? (
+              <Link
+                href="/admin"
+                className="focus-ring inline-flex items-center gap-2 rounded-full border border-beige-200 bg-white px-4 py-2 text-sm font-semibold text-ink-700 shadow-soft transition-all duration-200 hover:border-primary-300 hover:text-primary-600 active:scale-95"
+              >
+                <LayoutDashboard className="size-4" />
+                Admin
+              </Link>
+            ) : (
+              <Link
+                href="/cart"
+                className="focus-ring relative inline-flex items-center gap-2 rounded-full border border-beige-200 bg-white px-4 py-2 text-sm font-semibold text-ink-700 shadow-soft transition-all duration-200 hover:border-primary-300 hover:text-primary-600 active:scale-95"
+              >
+                <ShoppingBag className="size-4" />
+                <span className="hidden sm:inline">Cart</span>
+                {cartCount > 0 && (
+                  <span className="absolute -right-1 -top-1 grid min-w-5 place-items-center rounded-full bg-primary-600 px-1 text-[11px] font-bold text-white shadow-glow">
+                    {cartCount}
+                  </span>
+                )}
+              </Link>
+            )}
+            <UserMenu />
+          </nav>
+        </div>
       </header>
 
-      {/* Sticky search bar */}
-      <div className="glass sticky top-0 z-20 border-x-0 border-t-0 px-6 pb-4 pt-3 sm:px-10">
-        <div className="mx-auto flex w-full max-w-5xl items-center gap-3">
-          <div className="relative flex-1">
-            <Search className="pointer-events-none absolute left-5 top-1/2 size-5 -translate-y-1/2 text-ink-400" />
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search for pizzas, burgers, curries…"
-              className="focus-ring h-13 w-full rounded-full border border-beige-200 bg-white pl-13 pr-5 text-ink-900 shadow-card placeholder:text-ink-400"
-            />
+      {/* Sticky search + filters */}
+      <div className="glass sticky top-0 z-20 border-b border-white/50">
+        <div className="mx-auto w-full max-w-6xl px-4 pb-4 pt-3 sm:px-6">
+          <div className="flex items-center gap-3">
+            <div className="relative flex-1">
+              <Search className="pointer-events-none absolute left-5 top-1/2 size-5 -translate-y-1/2 text-ink-400" />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search for pizzas, burgers, curries…"
+                aria-label="Search menu"
+                className="focus-ring h-13 w-full rounded-full border border-beige-200 bg-white pl-13 pr-5 text-[15px] text-ink-900 shadow-card transition-all duration-200 placeholder:text-ink-400 hover:border-beige-300 focus:border-primary-400"
+              />
+              {query && (
+                <button
+                  onClick={() => setQuery("")}
+                  aria-label="Clear search"
+                  className="focus-ring absolute right-4 top-1/2 grid size-6 -translate-y-1/2 place-items-center rounded-full bg-beige-100 text-[11px] font-bold text-ink-500 transition-colors hover:bg-beige-200"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+            <button
+              aria-label="Filters"
+              className="focus-ring grid size-13 shrink-0 place-items-center rounded-full border border-beige-200 bg-white text-ink-700 shadow-card transition-all duration-200 hover:border-primary-300 hover:text-primary-600 active:scale-95"
+            >
+              <SlidersHorizontal className="size-5" />
+            </button>
           </div>
-          <button className="focus-ring grid size-13 shrink-0 place-items-center rounded-full border border-beige-200 bg-white text-ink-700 shadow-card transition-colors hover:border-primary-300 hover:text-primary-600">
-            <SlidersHorizontal className="size-5" />
-          </button>
+
+          {/* Filter chips — horizontal scroll, active = highlighted */}
+          <div className="-mx-4 mt-4 flex gap-2.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
+            {cuisines.map((c) => (
+              <FilterChip key={c} active={activeCuisine === c} onClick={() => toggle(setActiveCuisine, c)}>
+                {c}
+              </FilterChip>
+            ))}
+            {PRICE_RANGES.map((r) => (
+              <FilterChip key={r.id} active={activePrice === r.id} onClick={() => toggle(setActivePrice, r.id)}>
+                {r.label}
+              </FilterChip>
+            ))}
+            <span className="my-auto h-5 w-px shrink-0 bg-beige-300" />
+            {restaurants.map((r) => (
+              <FilterChip
+                key={r.id}
+                active={activeRestaurant === r.id}
+                onClick={() => toggle(setActiveRestaurant, r.id)}
+              >
+                <span className="text-base">{r.image_url}</span>
+                {r.name}
+              </FilterChip>
+            ))}
+          </div>
         </div>
       </div>
 
-      <main className="relative z-10 mx-auto w-full max-w-5xl flex-1 px-6 pb-20">
+      <main className="relative z-10 mx-auto w-full max-w-6xl flex-1 px-4 pb-24 sm:px-6 sm:pb-16">
         {/* Location / hint line */}
         <div className="mt-6 flex flex-wrap items-center justify-between gap-2">
           <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-ink-700">
@@ -180,68 +260,19 @@ export default function MenuPage() {
           </span>
         </div>
 
-        {/* Filter chips — horizontal scroll, active = highlighted */}
-        <div className="-mx-6 mt-4 flex gap-2.5 overflow-x-auto px-6 pb-2 [scrollbar-width:none]">
-          {cuisines.map((c) => (
-            <button
-              key={c}
-              onClick={() => toggle(setActiveCuisine, c)}
-              className={`focus-ring shrink-0 rounded-full border px-4 py-2 text-sm font-semibold transition-all duration-150 active:scale-95 ${
-                activeCuisine === c
-                  ? "border-primary-600 bg-primary-600 text-white shadow-glow"
-                  : "border-beige-200 bg-white/70 text-ink-700 hover:border-primary-300 hover:bg-primary-50"
-              }`}
-            >
-              {c}
-            </button>
-          ))}
-          {PRICE_RANGES.map((r) => (
-            <button
-              key={r.id}
-              onClick={() => toggle(setActivePrice, r.id)}
-              className={`focus-ring shrink-0 rounded-full border px-4 py-2 text-sm font-semibold transition-all duration-150 active:scale-95 ${
-                activePrice === r.id
-                  ? "border-primary-600 bg-primary-600 text-white shadow-glow"
-                  : "border-beige-200 bg-white/70 text-ink-700 hover:border-primary-300 hover:bg-primary-50"
-              }`}
-            >
-              {r.label}
-            </button>
-          ))}
-          <span className="my-auto h-5 w-px shrink-0 bg-beige-300" />
-          {restaurants.map((r) => (
-            <button
-              key={r.id}
-              onClick={() => toggle(setActiveRestaurant, r.id)}
-              className={`focus-ring flex shrink-0 items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-semibold transition-all duration-150 active:scale-95 ${
-                activeRestaurant === r.id
-                  ? "border-primary-600 bg-primary-600 text-white shadow-glow"
-                  : "border-beige-200 bg-white/70 text-ink-700 hover:border-primary-300 hover:bg-primary-50"
-              }`}
-            >
-              <span className="text-base">{r.image_url}</span>
-              {r.name}
-            </button>
-          ))}
-        </div>
-
-        <section className="mt-6">
+        <section className="mt-5">
           {pending ? (
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="h-64 animate-pulse rounded-3xl bg-beige-200/60" />
+                <Skeleton key={i} className="h-64 rounded-3xl" />
               ))}
             </div>
           ) : filtered.length === 0 ? (
-            <div className="mt-14 text-center">
-              <div className="mx-auto grid size-28 place-items-center rounded-full bg-beige-100 text-6xl">
-                🍽️
-              </div>
-              <p className="mt-6 text-xl font-bold text-ink-900">No dishes found</p>
-              <p className="mt-1 text-sm text-ink-500">
-                Try a different search.
-              </p>
-            </div>
+            <EmptyState
+              icon="🍽️"
+              title="No dishes found"
+              description="Try a different search, or clear the filters to see everything on the menu."
+            />
           ) : (
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {filtered.map((item, i) => {
@@ -250,18 +281,18 @@ export default function MenuPage() {
                 return (
                   <article
                     key={item.id}
-                    className="animate-fade-up group relative flex flex-col rounded-3xl border border-beige-200 bg-white p-5 shadow-card transition-all duration-200 hover:-translate-y-1 hover:shadow-pop"
-                    style={{ animationDelay: `${Math.min(i, 6) * 50}ms` }}
+                    className="card card-hover group animate-fade-up relative flex flex-col p-4"
+                    style={{ animationDelay: `${Math.min(i, 6) * 45}ms` }}
                   >
                     {/* Image */}
-                    <div className="relative flex h-32 items-center justify-center overflow-hidden rounded-2xl bg-beige-100 text-7xl">
+                    <div className="relative flex h-36 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-beige-100 to-primary-50 text-7xl">
                       <span className="drop-shadow-sm transition-transform duration-300 group-hover:scale-110">
                         {item.image_url ?? "🍲"}
                       </span>
                       {item.category && (
-                        <span className="glass absolute left-3 top-3 rounded-full px-2.5 py-1 text-[11px] font-semibold text-ink-700">
+                        <Badge tone="neutral" className="glass absolute left-3 top-3">
                           {item.category}
-                        </span>
+                        </Badge>
                       )}
                       {/* Floating + button: turns into a green tick while the
                           item is in the cart and stays until deselected. */}
@@ -276,6 +307,7 @@ export default function MenuPage() {
                             ? `Remove ${item.name} from cart`
                             : `Add ${item.name} to cart`
                         }
+                        aria-pressed={inCart}
                         className={`focus-ring absolute -bottom-4 right-4 grid size-11 place-items-center rounded-full shadow-glow transition-all duration-150 active:scale-90 hover:scale-110 ${
                           inCart
                             ? "bg-sage-500 text-white"
@@ -287,10 +319,10 @@ export default function MenuPage() {
                     </div>
 
                     {/* Body */}
-                    <div className="mt-6 flex items-center gap-2 text-[13px] text-ink-500">
+                    <div className="mt-6 flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-ink-500">
                       {rest && (
                         <>
-                          <span className="flex items-center gap-1">
+                          <span className="flex items-center gap-1 font-semibold text-ink-700">
                             <Star className="size-3.5 fill-primary-500 text-primary-500" />
                             {rest.rating}
                           </span>
@@ -304,21 +336,19 @@ export default function MenuPage() {
                         </>
                       )}
                     </div>
-                    <Link href={`/product/${item.id}`} className="mt-1.5">
-                      <h2 className="text-lg font-bold text-ink-900 transition-colors group-hover:text-primary-600">
+                    <Link href={`/product/${item.id}`} className="focus-ring mt-2 rounded-lg">
+                      <h2 className="text-lg font-bold leading-snug text-ink-900 transition-colors group-hover:text-primary-600">
                         {item.name}
                       </h2>
                     </Link>
-                    <p className="mt-0.5 line-clamp-2 flex-1 text-sm text-ink-500">
+                    <p className="mt-1 line-clamp-2 flex-1 text-sm leading-relaxed text-ink-500">
                       {item.description}
                     </p>
-                    <div className="mt-3 flex items-center justify-between">
-                      <span className="text-lg font-extrabold text-ink-900">
+                    <div className="mt-4 flex items-center justify-between border-t border-beige-100 pt-3">
+                      <span className="text-lg font-extrabold tracking-tight text-ink-900 tabular">
                         ₹{Number(item.price).toFixed(2)}
                       </span>
-                      <span className="text-sm text-ink-400">
-                        {rest?.name}
-                      </span>
+                      <span className="text-[13px] text-ink-400">{rest?.name}</span>
                     </div>
                   </article>
                 );

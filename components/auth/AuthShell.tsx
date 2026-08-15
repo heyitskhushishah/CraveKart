@@ -27,6 +27,12 @@ const features = [
   },
 ];
 
+const stats = [
+  { value: "10k+", label: "hungry students" },
+  { value: "30 min", label: "avg. delivery" },
+  { value: "120+", label: "local kitchens" },
+];
+
 export function AuthShell({
   title,
   subtitle,
@@ -56,7 +62,7 @@ export function AuthShell({
           </span>
         </div>
 
-        <div className="relative z-10 max-w-lg space-y-8">
+        <div className="relative z-10 max-w-lg space-y-9">
           <div className="space-y-4">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-primary-600/10 px-3.5 py-1.5 text-[13px] font-semibold text-primary-700">
               <Star className="size-3.5 fill-primary-600 text-primary-600" />
@@ -89,25 +95,36 @@ export function AuthShell({
           </ul>
 
           {/* floating glass order card */}
-          <div className="glass animate-fade-up mt-2 max-w-sm rounded-3xl p-5 shadow-pop [animation-delay:200ms]">
+          <div className="glass animate-float max-w-sm rounded-3xl p-5 shadow-pop">
             <div className="flex items-center gap-4">
-              <span className="inline-flex size-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-primary-500 to-primary-600 text-white">
+              <span className="inline-flex size-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-primary-500 to-primary-700 text-white">
                 <Pizza className="size-6" />
               </span>
               <div className="min-w-0 flex-1">
                 <p className="flex items-center justify-between font-bold text-ink-900">
                   Margherita Pizza
-                  <span className="text-primary-600">$9.99</span>
+                  <span className="text-primary-600">₹399</span>
                 </p>
                 <p className="flex items-center gap-2 text-[13px] text-ink-500">
                   <span className="inline-flex size-2 animate-pulse rounded-full bg-sage-500" />
                   On the way · 12 min
                 </p>
-                <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-beige-200">
+                <div className="mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-beige-200">
                   <div className="h-full w-3/4 rounded-full bg-gradient-to-r from-primary-500 to-coral-400" />
                 </div>
               </div>
             </div>
+          </div>
+
+          <div className="flex gap-8">
+            {stats.map((s) => (
+              <div key={s.label}>
+                <p className="text-xl font-extrabold tracking-tight text-ink-900">
+                  {s.value}
+                </p>
+                <p className="text-[13px] text-ink-500">{s.label}</p>
+              </div>
+            ))}
           </div>
         </div>
 
@@ -117,7 +134,7 @@ export function AuthShell({
       </aside>
 
       {/* ---- Form panel ---- */}
-      <main className="relative flex items-center justify-center px-6 py-12 sm:px-10">
+      <main className="relative flex items-center justify-center px-4 py-12 sm:px-8">
         <div className="pointer-events-none absolute inset-0 lg:hidden">
           <div className="animate-blob absolute -right-20 -top-20 size-64 rounded-full bg-primary-100 blur-3xl" />
         </div>
@@ -128,19 +145,15 @@ export function AuthShell({
           </div>
 
           <div className="animate-fade-up">
-            <h2 className="text-3xl font-extrabold tracking-tight text-ink-900">
-              {title}
-            </h2>
+            <h2 className="heading text-3xl sm:text-[2rem]">{title}</h2>
             <p className="mt-2 text-[15px] leading-relaxed text-ink-500">
               {subtitle}
             </p>
 
-            <div className="mt-8 space-y-6">{children}</div>
+            <div className="card card-pad mt-8 space-y-6">{children}</div>
 
             {footer && (
-              <div className="mt-8 text-center text-sm text-ink-500">
-                {footer}
-              </div>
+              <div className="mt-6 text-center text-sm text-ink-500">{footer}</div>
             )}
           </div>
         </div>

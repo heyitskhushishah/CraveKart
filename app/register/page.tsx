@@ -194,7 +194,7 @@ export default function RegisterPage() {
               name="role"
               value={role}
               onChange={(e) => setRole(e.target.value)}
-              className="focus-ring h-11 w-full appearance-none rounded-xl border border-beige-200 bg-white/80 px-4 pr-10 text-[15px] text-ink-900 transition-colors hover:border-beige-300 focus:border-primary-400"
+              className="focus-ring h-11 w-full appearance-none rounded-xl border border-beige-200 bg-surface-soft px-4 pr-10 text-[15px] text-ink-900 shadow-soft transition-all duration-200 hover:border-beige-300 focus:border-primary-400 focus:bg-surface"
             >
               <option value="customer">Customer (standard)</option>
               <option value="admin">Admin (owner)</option>

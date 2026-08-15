@@ -1,12 +1,18 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
-import { ArrowLeft, PackageSearch } from "lucide-react";
+import { ArrowRight, PackageSearch, Route, Terminal } from "lucide-react";
 
-import { Logo } from "@/components/ui/Logo";
 import { Button } from "@/components/ui/Button";
+import { PageShell } from "@/components/ui/PageShell";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { RequireCustomer } from "@/components/ui/RequireCustomer";
+
+const steps = [
+  { n: "1", label: "Paste your tracking URL from the receipt email." },
+  { n: "2", label: "We query our courier gateway to resolve the parcel." },
+  { n: "3", label: "See live delivery status below, in real time." },
+];
 
 export default function TrackPage() {
   const [input, setInput] = useState("");
@@ -28,46 +34,69 @@ export default function TrackPage() {
 
   return (
     <RequireCustomer>
-    <div className="relative flex min-h-screen flex-col overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-cream via-beige-100 to-primary-100" />
-      <div className="animate-blob absolute -right-24 top-16 size-96 rounded-full bg-primary-200/50 blur-3xl" />
+    <PageShell backHref="/" backLabel="Go home" maxWidth="max-w-2xl">
+      <PageHeader
+        icon={PackageSearch}
+        title="Track your order"
+        subtitle="Paste your tracking URL and our courier gateway will look it up for you."
+      />
 
-      <header className="relative z-10 flex items-center justify-between px-6 py-5 sm:px-10">
-        <Link href="/" className="focus-ring inline-flex items-center gap-2 rounded-full text-sm font-semibold text-ink-700 transition-colors hover:text-primary-600">
-          <ArrowLeft className="size-4" />
-          <Logo size="md" />
-        </Link>
-      </header>
-
-      <main className="relative z-10 mx-auto w-full max-w-2xl flex-1 px-6 pb-20">
-        <h1 className="animate-fade-up mt-8 flex items-center gap-3 text-3xl font-extrabold tracking-tight text-ink-900">
-          <PackageSearch className="size-7 text-primary-600" />
-          Track your order
-        </h1>
-        <p className="mt-2 text-sm text-ink-500">
-          Paste your tracking URL and our courier gateway will look it up for you.
-        </p>
-
-        <div className="mt-6 rounded-3xl border border-beige-200 bg-white p-6 shadow-card">
+      <div className="card card-pad mt-8">
+        <label htmlFor="track-url" className="text-sm font-semibold text-ink-800">
+          Tracking URL
+        </label>
+        <div className="relative mt-2">
+          <Route className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-ink-400" />
           <input
+            id="track-url"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && lookUp()}
             placeholder="https://track.cravekart.app/ABC123"
-            className="focus-ring h-12 w-full rounded-full border border-beige-200 bg-cream px-5 text-sm text-ink-900 placeholder:text-ink-400"
+            className="focus-ring input-base h-12 rounded-full pl-12 pr-4"
           />
-          <Button className="mt-4 w-full" loading={loading} onClick={lookUp}>
-            Track now
-          </Button>
         </div>
+        <Button className="mt-4 w-full" size="lg" loading={loading} onClick={lookUp}>
+          Track now <ArrowRight className="size-4" />
+        </Button>
+      </div>
 
-        {result && (
-          <pre className="mt-5 max-h-80 overflow-auto rounded-3xl border border-beige-200 bg-ink-900 p-5 text-xs leading-relaxed text-cream shadow-card">
+      <ol className="mt-6 grid gap-3 sm:grid-cols-3">
+        {steps.map((s) => (
+          <li key={s.n} className="card flex items-start gap-3 p-4">
+            <span className="grid size-7 shrink-0 place-items-center rounded-full bg-primary-50 text-xs font-bold text-primary-600">
+              {s.n}
+            </span>
+            <p className="text-[13px] leading-relaxed text-ink-500">{s.label}</p>
+          </li>
+        ))}
+      </ol>
+
+      {result && (
+        <div className="mt-6 overflow-hidden rounded-3xl border border-beige-200 bg-ink-900 shadow-card">
+          <div className="flex items-center gap-2 border-b border-white/10 px-5 py-3">
+            <Terminal className="size-4 text-primary-400" />
+            <p className="truncate text-xs font-semibold text-cream/80">
+              {result.target}
+            </p>
+            {result.status && (
+              <span
+                className={`ml-auto rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
+                  (result.status ?? 0) >= 400
+                    ? "bg-coral-500/20 text-coral-400"
+                    : "bg-sage-500/20 text-sage-400"
+                }`}
+              >
+                {result.status}
+              </span>
+            )}
+          </div>
+          <pre className="max-h-80 overflow-auto p-5 text-xs leading-relaxed text-cream/90">
 {JSON.stringify(result, null, 2)}
           </pre>
-        )}
-      </main>
-    </div>
+        </div>
+      )}
+    </PageShell>
     </RequireCustomer>
   );
 }

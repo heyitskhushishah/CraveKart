@@ -2,9 +2,14 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Receipt } from "lucide-react";
+import { ArrowRight, Receipt } from "lucide-react";
 
-import { Logo } from "@/components/ui/Logo";
+import { Button } from "@/components/ui/Button";
+import { PageShell } from "@/components/ui/PageShell";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { CardSkeleton } from "@/components/ui/Skeleton";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Badge, statusTone, STATUS_LABEL } from "@/components/ui/Badge";
 import { RequireCustomer } from "@/components/ui/RequireCustomer";
 
 type Order = {
@@ -14,13 +19,6 @@ type Order = {
   status: string;
   created_at: string;
   cc_number: string | null;
-};
-
-const statusLabel: Record<string, string> = {
-  pending: "Pending",
-  on_the_way: "On the way",
-  delivered: "Delivered",
-  cancelled: "Cancelled",
 };
 
 export default function OrdersPage() {
@@ -41,67 +39,58 @@ export default function OrdersPage() {
 
   return (
     <RequireCustomer>
-    <div className="relative flex min-h-screen flex-col overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-cream via-beige-100 to-primary-100" />
-      <div className="animate-blob absolute -left-24 top-16 size-96 rounded-full bg-primary-200/50 blur-3xl" />
+    <PageShell backHref="/menu" backLabel="Back to menu" maxWidth="max-w-3xl">
+      <PageHeader
+        icon={Receipt}
+        title="Your orders"
+        subtitle="Showing every order on record — no login required. 🔓"
+      />
 
-      <header className="relative z-10 flex items-center justify-between px-6 py-5 sm:px-10">
-        <Link href="/menu" className="focus-ring inline-flex items-center gap-2 rounded-full text-sm font-semibold text-ink-700 transition-colors hover:text-primary-600">
-          <ArrowLeft className="size-4" />
-          <Logo size="md" />
-        </Link>
-      </header>
-
-      <main className="relative z-10 mx-auto w-full max-w-3xl flex-1 px-6 pb-20">
-        <h1 className="animate-fade-up mt-8 flex items-center gap-3 text-3xl font-extrabold tracking-tight text-ink-900">
-          <Receipt className="size-7 text-primary-600" />
-          Your orders
-        </h1>
-        <p className="mt-2 text-sm text-ink-500">
-          Showing every order on record — no login required. 🔓
-        </p>
-
-        {loading ? (
-          <div className="mt-8 space-y-4">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="h-28 animate-pulse rounded-3xl bg-beige-200/60" />
-            ))}
-          </div>
-        ) : orders.length === 0 ? (
-          <div className="mt-16 text-center">
-            <p className="text-5xl">📭</p>
-            <p className="mt-4 text-lg font-semibold text-ink-700">No orders yet</p>
-            <Link href="/menu" className="mt-4 inline-block text-sm font-semibold text-primary-600">
-              Order something delicious
+      {loading ? (
+        <CardSkeleton count={3} height="h-28" />
+      ) : orders.length === 0 ? (
+        <EmptyState
+          icon="📭"
+          title="No orders yet"
+          description="When you place an order it will show up here."
+          action={
+            <Link href="/menu">
+              <Button>Order something delicious</Button>
             </Link>
-          </div>
-        ) : (
-          <div className="mt-8 space-y-4">
-            {orders.map((o) => (
-              <Link key={o.id} href={`/orders/${o.id}`} className="block">
-                <article className="flex items-center gap-4 rounded-3xl border border-beige-200 bg-white p-5 shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-pop">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-beige-100 text-xl">
-                    🧾
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="font-bold text-ink-900">{o.restaurant_name}</p>
-                    <p className="text-sm text-ink-500">
-                      {new Date(o.created_at).toLocaleString()} · {o.id.slice(0, 8)}…
-                    </p>
-                  </div>
-                  <span className="text-sm font-semibold text-ink-700">
-                    {statusLabel[o.status] ?? o.status}
-                  </span>
-                  <span className="text-lg font-extrabold text-ink-900">
-                    ₹{Number(o.total).toFixed(2)}
-                  </span>
-                </article>
-              </Link>
-            ))}
-          </div>
-        )}
-      </main>
-    </div>
+          }
+        />
+      ) : (
+        <div className="mt-8 space-y-4">
+          {orders.map((o) => (
+            <Link key={o.id} href={`/orders/${o.id}`} className="focus-ring block rounded-3xl">
+              <article className="card card-hover flex items-center gap-4 p-5">
+                <div className="grid size-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-beige-100 to-primary-50 text-xl">
+                  🧾
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-bold text-ink-900">
+                    {o.restaurant_name}
+                  </p>
+                  <p className="mt-0.5 text-sm text-ink-500">
+                    {new Date(o.created_at).toLocaleString()} ·{" "}
+                    <span className="font-mono">{o.id.slice(0, 8)}…</span>
+                  </p>
+                </div>
+                <div className="hidden sm:block">
+                  <Badge tone={statusTone(o.status)} dot>
+                    {STATUS_LABEL[o.status] ?? o.status}
+                  </Badge>
+                </div>
+                <span className="text-lg font-extrabold tabular text-ink-900">
+                  ₹{Number(o.total).toFixed(2)}
+                </span>
+                <ArrowRight className="size-4 shrink-0 text-ink-400 transition-transform duration-200 group-hover:translate-x-0.5" />
+              </article>
+            </Link>
+          ))}
+        </div>
+      )}
+    </PageShell>
     </RequireCustomer>
   );
 }

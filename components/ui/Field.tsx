@@ -17,15 +17,17 @@ export function Field({
     <div className="space-y-1.5">
       <label
         htmlFor={htmlFor}
-        className="text-[13px] font-semibold text-ink-800"
+        className="text-[13px] font-semibold tracking-wide text-ink-800"
       >
         {label}
       </label>
       {children}
       {error ? (
-        <p className="text-[12.5px] font-medium text-coral-500">{error}</p>
+        <p className="text-[12.5px] font-medium text-coral-500" role="alert">
+          {error}
+        </p>
       ) : hint ? (
-        <p className="text-[12.5px] text-ink-500">{hint}</p>
+        <p className="text-[12.5px] leading-relaxed text-ink-500">{hint}</p>
       ) : null}
     </div>
   );

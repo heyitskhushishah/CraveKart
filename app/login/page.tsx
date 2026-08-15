@@ -180,27 +180,27 @@ function LoginContent() {
         </Button>
       </form>
 
-      <div className="relative py-2">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t border-beige-200" />
+        <div className="relative py-2">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t border-beige-200" />
+          </div>
+          <div className="relative flex justify-center">
+            <span className="bg-surface px-3 text-xs font-medium uppercase tracking-wider text-ink-400">
+              or continue with
+            </span>
+          </div>
         </div>
-        <div className="relative flex justify-center">
-          <span className="bg-transparent px-3 text-xs font-medium uppercase tracking-wider text-ink-400">
-            or continue with
-          </span>
-        </div>
-      </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <Button type="button" variant="secondary" onClick={() => {}}>
-          <Chrome className="size-4" />
-          Google
-        </Button>
-        <Button type="button" variant="secondary" onClick={() => {}}>
-          <Apple className="size-4" />
-          Apple
-        </Button>
-      </div>
+        <div className="grid grid-cols-2 gap-3">
+          <Button type="button" variant="secondary" onClick={() => {}}>
+            <Chrome className="size-4" />
+            Google
+          </Button>
+          <Button type="button" variant="secondary" onClick={() => {}}>
+            <Apple className="size-4" />
+            Apple
+          </Button>
+        </div>
     </AuthShell>
   );
 }

@@ -7,6 +7,7 @@ import { Check, ChevronDown, Copy, LogOut } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
 import { AUTH_EVENT, getCurrentUser, type UserProfile } from "@/lib/cart";
+import { Badge } from "@/components/ui/Badge";
 
 function initials(name: string | null | undefined): string {
   if (!name) return "U";
@@ -31,8 +32,15 @@ export function UserMenu() {
     const onClick = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
     };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
     document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onClick);
+      document.removeEventListener("keydown", onKey);
+    };
   }, []);
 
   async function signOut() {
@@ -57,7 +65,7 @@ export function UserMenu() {
     return (
       <Link
         href="/login"
-        className="focus-ring rounded-full px-3 py-2 text-sm font-semibold text-ink-700 transition-colors hover:text-primary-600"
+        className="focus-ring rounded-full px-4 py-2 text-sm font-semibold text-ink-700 transition-colors hover:text-primary-600"
       >
         Sign in
       </Link>
@@ -74,29 +82,41 @@ export function UserMenu() {
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="focus-ring flex items-center gap-2 rounded-full border border-beige-200 bg-white py-1 pl-1 pr-3 text-sm font-semibold text-ink-800 shadow-card transition-all duration-150 hover:border-primary-300 active:scale-95"
+        className="focus-ring flex items-center gap-2 rounded-full border border-beige-200 bg-white py-1 pl-1 pr-3 text-sm font-semibold text-ink-800 shadow-soft transition-all duration-150 hover:border-primary-300 hover:shadow-card active:scale-95"
         aria-haspopup="menu"
         aria-expanded={open}
       >
-        <span className="grid size-8 place-items-center rounded-full bg-gradient-to-br from-primary-600 to-coral-500 text-[13px] font-bold text-white">
+        <span className="grid size-8 place-items-center rounded-full bg-gradient-to-br from-primary-500 to-primary-700 text-[13px] font-bold text-white ring-2 ring-primary-100">
           {initials(user.name ?? user.email)}
         </span>
-        <span className="hidden max-w-28 truncate sm:inline">{user.name ?? user.email}</span>
-        <span className="hidden font-mono text-[11px] text-ink-400 md:inline">#{shortId}</span>
-        <ChevronDown className={`size-3.5 text-ink-400 transition-transform ${open ? "rotate-180" : ""}`} />
+        <span className="hidden max-w-28 truncate sm:inline">
+          {user.name ?? user.email}
+        </span>
+        <span className="hidden font-mono text-[11px] text-ink-400 md:inline">
+          #{shortId}
+        </span>
+        <ChevronDown
+          className={`size-3.5 text-ink-400 transition-transform duration-200 ${
+            open ? "rotate-180" : ""
+          }`}
+        />
       </button>
 
       {open && (
-        <div className="animate-fade-in absolute right-0 top-full z-30 mt-2 w-72 overflow-hidden rounded-2xl border border-beige-200 bg-white p-2 shadow-pop">
+        <div className="animate-scale-in absolute right-0 top-full z-30 mt-2 w-72 origin-top-right overflow-hidden rounded-2xl border border-beige-200 bg-white p-2 shadow-pop">
           <div className="rounded-xl bg-beige-100/70 px-4 py-3">
-            <p className="font-bold text-ink-900">{user.name ?? "CraveKart member"}</p>
-            <p className="text-sm text-ink-500">{user.email}</p>
-            <p className="mt-1 inline-flex rounded-full bg-primary-50 px-2 py-0.5 text-[11px] font-semibold text-primary-600">
-              {user.role ?? "member"}
+            <p className="truncate font-bold text-ink-900">
+              {user.name ?? "CraveKart member"}
             </p>
+            <p className="truncate text-sm text-ink-500">{user.email}</p>
+            <div className="mt-2">
+              <Badge tone={user.role === "admin" ? "brand" : "neutral"}>
+                {user.role ?? "member"}
+              </Badge>
+            </div>
           </div>
           {userId && (
-            <div className="mt-2 flex items-center gap-2 px-4 py-2">
+            <div className="mt-1 flex items-center gap-2 px-3 py-2">
               <span className="shrink-0 text-[11px] font-semibold uppercase tracking-wide text-ink-400">
                 User ID
               </span>
@@ -108,7 +128,11 @@ export function UserMenu() {
                 className="focus-ring grid size-7 shrink-0 place-items-center rounded-lg text-ink-500 transition-colors hover:bg-beige-100 hover:text-primary-600"
                 aria-label="Copy user id"
               >
-                {copied ? <Check className="size-4 text-sage-500" /> : <Copy className="size-4" />}
+                {copied ? (
+                  <Check className="size-4 text-sage-500" />
+                ) : (
+                  <Copy className="size-4" />
+                )}
               </button>
             </div>
           )}

@@ -16,7 +16,7 @@ export function Logo({
   return (
     <div className={`flex items-center gap-2.5 ${className}`}>
       <span
-        className={`${box} inline-flex items-center justify-center bg-gradient-to-br from-primary-500 to-primary-600 text-white shadow-glow`}
+        className={`${box} inline-flex items-center justify-center bg-gradient-to-br from-primary-500 to-primary-700 text-white shadow-glow ring-1 ring-white/40`}
       >
         <UtensilsCrossed className={icon} strokeWidth={2.4} />
       </span>

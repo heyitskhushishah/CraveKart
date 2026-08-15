@@ -3,12 +3,15 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
-import { ArrowLeft, CreditCard, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
+import { CreditCard, Minus, Plus, ShoppingBag, Sparkles, Tag, Trash2 } from "lucide-react";
 
-import { Logo } from "@/components/ui/Logo";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { Input } from "@/components/ui/Input";
+import { PageShell } from "@/components/ui/PageShell";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { EmptyState } from "@/components/ui/EmptyState";
 import dynamic from "next/dynamic";
 const UserMenu = dynamic(
   () => import("@/components/ui/UserMenu").then((m) => m.UserMenu),
@@ -81,154 +84,180 @@ export default function CartPage() {
 
   return (
     <RequireCustomer>
-    <div className="relative flex min-h-screen flex-col overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-cream via-beige-100 to-primary-100" />
-      <div className="animate-blob absolute -right-24 top-0 size-96 rounded-full bg-primary-200/50 blur-3xl" />
+    <PageShell
+      backHref="/menu"
+      backLabel="Back to menu"
+      maxWidth="max-w-5xl"
+      right={<UserMenu />}
+    >
+      <PageHeader
+        icon={ShoppingBag}
+        title="Your cart"
+        subtitle={
+          cart.length > 0
+            ? `${cart.length} item${cart.length === 1 ? "" : "s"} ready to check out`
+            : "Nothing here yet — let's fix that."
+        }
+      />
 
-      <header className="relative z-10 flex items-center justify-between px-6 py-5 sm:px-10">
-        <Link href="/menu" className="focus-ring inline-flex items-center gap-2 rounded-full text-sm font-semibold text-ink-700 transition-colors hover:text-primary-600">
-          <ArrowLeft className="size-4" />
-          <Logo size="md" />
-        </Link>
-        <nav className="flex items-center gap-3">
-          <UserMenu />
-        </nav>
-      </header>
-
-      <main className="relative z-10 mx-auto w-full max-w-4xl flex-1 px-6 pb-20">
-        <h1 className="animate-fade-up mt-8 flex items-center gap-3 text-3xl font-extrabold tracking-tight text-ink-900">
-          <ShoppingBag className="size-7 text-primary-600" />
-          Your cart
-        </h1>
-
-        {!ready ? (
-          <div className="mt-16 space-y-4" aria-busy="true">
-            <div className="h-24 animate-pulse rounded-3xl bg-beige-200/60" />
-            <div className="h-24 animate-pulse rounded-3xl bg-beige-200/60" />
-            <div className="h-24 animate-pulse rounded-3xl bg-beige-200/60" />
+      {!ready ? (
+        <div className="mt-8 grid gap-8 lg:grid-cols-[1.4fr_1fr]">
+          <div className="space-y-4">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} className="h-24 rounded-3xl" />
+            ))}
           </div>
-        ) : cart.length === 0 ? (
-          <div className="mt-16 text-center">
-            <p className="text-5xl">🛒</p>
-            <p className="mt-4 text-lg font-semibold text-ink-700">Your cart is empty</p>
-            <p className="mt-1 text-sm text-ink-400">
-              Head back to the menu and pick something tasty.
-            </p>
-            <Link href="/menu" className="mt-6 inline-block">
+          <Skeleton className="h-96 rounded-3xl" />
+        </div>
+      ) : cart.length === 0 ? (
+        <EmptyState
+          icon="🛒"
+          title="Your cart is empty"
+          description="Head back to the menu and pick something tasty."
+          action={
+            <Link href="/menu">
               <Button>Browse menu</Button>
             </Link>
-          </div>
-        ) : (
-          <div className="mt-8 grid gap-8 lg:grid-cols-[1.4fr_1fr]">
-            <section className="space-y-4">
-              {cart.map((line) => (
-                <article
-                  key={line.id}
-                  className="flex items-center gap-4 rounded-3xl border border-beige-200 bg-white p-4 shadow-card"
-                >
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-beige-100 text-3xl">
-                    🍽️
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="font-bold text-ink-900">{line.name}</p>
-                    <p className="text-sm text-ink-500">₹{line.price.toFixed(2)} each</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => updateQty(line.id, -1)}
-                      className="focus-ring grid size-8 place-items-center rounded-full border border-beige-200 text-ink-700 hover:bg-beige-100"
-                      aria-label="Decrease"
-                    >
-                      <Minus className="size-4" />
-                    </button>
-                    <span className="w-6 text-center font-bold text-ink-900">{line.qty}</span>
-                    <button
-                      onClick={() => updateQty(line.id, 1)}
-                      className="focus-ring grid size-8 place-items-center rounded-full border border-beige-200 text-ink-700 hover:bg-beige-100"
-                      aria-label="Increase"
-                    >
-                      <Plus className="size-4" />
-                    </button>
-                  </div>
-                  <span className="w-20 text-right font-extrabold text-ink-900">
-                    ₹{(line.price * line.qty).toFixed(2)}
+          }
+        />
+      ) : (
+        <div className="mt-8 grid items-start gap-8 lg:grid-cols-[1.4fr_1fr]">
+          {/* Cart lines */}
+          <section className="space-y-4">
+            {cart.map((line) => (
+              <article
+                key={line.id}
+                className="card card-hover flex items-center gap-4 p-4"
+              >
+                <div className="grid size-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-beige-100 to-primary-50 text-3xl">
+                  🍽️
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-bold text-ink-900">{line.name}</p>
+                  <p className="mt-0.5 text-sm text-ink-500 tabular">
+                    ₹{line.price.toFixed(2)} each
+                  </p>
+                </div>
+                <div className="flex items-center gap-1 rounded-full border border-beige-200 bg-cream p-1">
+                  <button
+                    onClick={() => updateQty(line.id, -1)}
+                    className="focus-ring grid size-8 place-items-center rounded-full text-ink-700 transition-all hover:bg-white active:scale-90"
+                    aria-label={`Decrease quantity of ${line.name}`}
+                  >
+                    <Minus className="size-4" />
+                  </button>
+                  <span className="w-6 text-center text-sm font-bold tabular text-ink-900">
+                    {line.qty}
                   </span>
                   <button
-                    onClick={() => updateQty(line.id, -line.qty)}
-                    className="focus-ring grid size-8 place-items-center rounded-full text-coral-500 hover:bg-coral-400/10"
-                    aria-label="Remove"
+                    onClick={() => updateQty(line.id, 1)}
+                    className="focus-ring grid size-8 place-items-center rounded-full text-ink-700 transition-all hover:bg-white active:scale-90"
+                    aria-label={`Increase quantity of ${line.name}`}
                   >
-                    <Trash2 className="size-4" />
+                    <Plus className="size-4" />
                   </button>
-                </article>
-              ))}
+                </div>
+                <span className="w-20 text-right text-base font-extrabold tabular text-ink-900">
+                  ₹{(line.price * line.qty).toFixed(2)}
+                </span>
+                <button
+                  onClick={() => updateQty(line.id, -line.qty)}
+                  className="focus-ring grid size-9 shrink-0 place-items-center rounded-full text-coral-500 transition-colors hover:bg-coral-400/10 active:scale-90"
+                  aria-label={`Remove ${line.name}`}
+                >
+                  <Trash2 className="size-4" />
+                </button>
+              </article>
+            ))}
+            <div className="flex justify-end">
+              <button
+                onClick={clear}
+                className="focus-ring rounded-full px-4 py-2 text-sm font-semibold text-ink-500 transition-colors hover:text-coral-500"
+              >
+                Clear cart
+              </button>
+            </div>
+          </section>
+
+          {/* Sidebar */}
+          <aside className="space-y-5">
+            <section className="card card-pad">
+              <h2 className="flex items-center gap-2 font-bold text-ink-900">
+                <Tag className="size-5 text-primary-600" />
+                Coupon
+              </h2>
+              <div className="mt-3 flex gap-2">
+                <input
+                  value={coupon}
+                  onChange={(e) => setCoupon(e.target.value)}
+                  placeholder="e.g. FRESH10"
+                  aria-label="Coupon code"
+                  className="input-base min-w-0 flex-1 rounded-full"
+                />
+                <Button variant="dark" onClick={applyCoupon}>
+                  Apply
+                </Button>
+              </div>
+              {couponMsg && (
+                <p className="mt-2.5 flex items-center gap-1.5 text-sm font-medium text-sage-500">
+                  <Sparkles className="size-3.5" />
+                  {couponMsg}
+                </p>
+              )}
             </section>
 
-            <aside className="space-y-5">
-              <section className="rounded-3xl border border-beige-200 bg-white p-6 shadow-card">
-                <h2 className="font-bold text-ink-900">Coupon</h2>
-                <div className="mt-3 flex gap-2">
-                  <input
-                    value={coupon}
-                    onChange={(e) => setCoupon(e.target.value)}
-                    placeholder="e.g. FRESH10"
-                    className="focus-ring h-11 min-w-0 flex-1 rounded-full border border-beige-200 bg-cream px-4 text-sm text-ink-900 placeholder:text-ink-400"
-                  />
-                  <Button variant="dark" onClick={applyCoupon}>
-                    Apply
-                  </Button>
-                </div>
-                {couponMsg && (
-                  <p className="mt-2 text-sm font-medium text-sage-500">{couponMsg}</p>
-                )}
-              </section>
-
-              <section className="rounded-3xl border border-beige-200 bg-white p-6 shadow-card">
-                <h2 className="flex items-center gap-2 font-bold text-ink-900">
-                  <CreditCard className="size-5 text-primary-600" />
-                  Payment
-                </h2>
-                <div className="mt-4 space-y-3">
-                  <Field label="Name on card" htmlFor="cardName">
-                    <Input value={cardName} onChange={(e) => setCardName(e.target.value)} placeholder="Ava Admin" />
+            <section className="card card-pad">
+              <h2 className="flex items-center gap-2 font-bold text-ink-900">
+                <CreditCard className="size-5 text-primary-600" />
+                Payment
+              </h2>
+              <div className="mt-4 space-y-3">
+                <Field label="Name on card" htmlFor="cardName">
+                  <Input value={cardName} onChange={(e) => setCardName(e.target.value)} placeholder="Ava Admin" />
+                </Field>
+                <Field label="Card number" htmlFor="cardNumber">
+                  <Input value={cardNumber} onChange={(e) => setCardNumber(e.target.value)} placeholder="4111 1111 1111 1111" inputMode="numeric" />
+                </Field>
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="Expiry" htmlFor="expiry">
+                    <Input value={expiry} onChange={(e) => setExpiry(e.target.value)} placeholder="MM/YY" />
                   </Field>
-                  <Field label="Card number" htmlFor="cardNumber">
-                    <Input value={cardNumber} onChange={(e) => setCardNumber(e.target.value)} placeholder="4111 1111 1111 1111" inputMode="numeric" />
+                  <Field label="CVV" htmlFor="cvv">
+                    <Input value={cvv} onChange={(e) => setCvv(e.target.value)} placeholder="123" inputMode="numeric" />
                   </Field>
-                  <div className="grid grid-cols-2 gap-3">
-                    <Field label="Expiry" htmlFor="expiry">
-                      <Input value={expiry} onChange={(e) => setExpiry(e.target.value)} placeholder="MM/YY" />
-                    </Field>
-                    <Field label="CVV" htmlFor="cvv">
-                      <Input value={cvv} onChange={(e) => setCvv(e.target.value)} placeholder="123" inputMode="numeric" />
-                    </Field>
-                  </div>
                 </div>
-                {error && <p className="mt-3 text-sm font-medium text-coral-500">{error}</p>}
-              </section>
+              </div>
+              {error && (
+                <p className="mt-3 rounded-xl border border-coral-500/25 bg-coral-400/10 px-4 py-2.5 text-sm font-medium text-coral-500" role="alert">
+                  {error}
+                </p>
+              )}
+            </section>
 
-              <section className="rounded-3xl border border-beige-200 bg-white p-6 shadow-card">
-                <div className="flex justify-between text-sm text-ink-500">
-                  <span>Subtotal</span>
-                  <span className="font-semibold text-ink-900">₹{subtotal.toFixed(2)}</span>
-                </div>
-                <div className="mt-2 flex justify-between text-sm text-ink-500">
-                  <span>Coupon</span>
-                  <span className="font-semibold text-sage-500">− ₹{discount.toFixed(2)}</span>
-                </div>
-                <div className="mt-4 flex justify-between border-t border-beige-200 pt-4 text-lg font-extrabold text-ink-900">
-                  <span>Total</span>
-                  <span>₹{total.toFixed(2)}</span>
-                </div>
-                <Button className="mt-5 w-full" size="lg" loading={placing} onClick={placeOrder}>
-                  Place order · ₹{total.toFixed(2)}
-                </Button>
-              </section>
-            </aside>
-          </div>
-        )}
-      </main>
-    </div>
+            <section className="card card-pad">
+              <div className="flex justify-between text-sm text-ink-500">
+                <span>Subtotal</span>
+                <span className="font-semibold text-ink-900 tabular">₹{subtotal.toFixed(2)}</span>
+              </div>
+              <div className="mt-2.5 flex justify-between text-sm text-ink-500">
+                <span>Coupon</span>
+                <span className="font-semibold text-sage-500 tabular">− ₹{discount.toFixed(2)}</span>
+              </div>
+              <div className="mt-4 flex justify-between border-t border-dashed border-beige-200 pt-4 text-lg font-extrabold text-ink-900">
+                <span>Total</span>
+                <span className="tabular">₹{total.toFixed(2)}</span>
+              </div>
+              <Button className="mt-5 w-full" size="lg" loading={placing} onClick={placeOrder}>
+                Place order · ₹{total.toFixed(2)}
+              </Button>
+              <p className="mt-3 text-center text-xs text-ink-400">
+                Ordering takes seconds — your food will be on its way.
+              </p>
+            </section>
+          </aside>
+        </div>
+      )}
+    </PageShell>
     </RequireCustomer>
   );
 }

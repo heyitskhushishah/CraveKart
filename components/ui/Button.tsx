@@ -6,11 +6,11 @@ type Size = "sm" | "md" | "lg";
 
 const variants: Record<Variant, string> = {
   primary:
-    "bg-primary-600 text-white hover:bg-primary-500 shadow-glow active:scale-[0.98]",
+    "bg-gradient-to-b from-primary-500 to-primary-600 text-white shadow-glow hover:from-primary-400 hover:to-primary-500 active:scale-[0.97]",
   secondary:
-    "bg-white text-ink-900 border border-beige-200 hover:border-primary-300 hover:bg-primary-50 active:scale-[0.98]",
-  ghost: "bg-transparent text-ink-700 hover:bg-beige-100 active:scale-[0.98]",
-  dark: "bg-ink-900 text-cream hover:bg-ink-800 active:scale-[0.98]",
+    "bg-white text-ink-800 border border-beige-200 shadow-soft hover:border-primary-300 hover:bg-primary-50/70 hover:text-primary-700 active:scale-[0.97]",
+  ghost: "bg-transparent text-ink-700 hover:bg-beige-100 hover:text-ink-900 active:scale-[0.97]",
+  dark: "bg-ink-900 text-cream shadow-soft hover:bg-ink-800 active:scale-[0.97]",
 };
 
 const sizes: Record<Size, string> = {
@@ -31,7 +31,7 @@ export const Button = forwardRef<HTMLButtonElement, Props>(
       <button
         ref={ref}
         disabled={disabled || loading}
-        className={`focus-ring inline-flex items-center justify-center font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60 ${variants[variant]} ${sizes[size]} ${className}`}
+        className={`focus-ring inline-flex select-none items-center justify-center font-semibold transition-all duration-200 will-change-transform disabled:cursor-not-allowed disabled:opacity-60 ${variants[variant]} ${sizes[size]} ${className}`}
         {...rest}
       >
         {loading && <Loader2 className="size-4 animate-spin" />}
