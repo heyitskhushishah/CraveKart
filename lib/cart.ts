@@ -9,6 +9,8 @@ export type UserProfile = {
   email?: string;
   name?: string | null;
   role?: string;
+  phone?: string | null;
+  delivery_address?: string | null;
 };
 
 // Broadcast events so open pages stay in sync across tabs/actions.

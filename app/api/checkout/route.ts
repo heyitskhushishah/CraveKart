@@ -5,11 +5,14 @@ type CheckoutBody = {
   items?: CartItem[];
   card?: { number?: string; expiry?: string; cvv?: string; name?: string };
   email?: string;
+  delivery_address?: string;
 };
 
 export async function POST(request: Request) {
   const body = (await request.json().catch(() => ({}))) as CheckoutBody;
-  const { items = [], card = {}, email } = body;
+  const { items = [], card = {}, email, delivery_address } = body;
+
+  const address = String(delivery_address ?? "").trim();
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -20,6 +23,10 @@ export async function POST(request: Request) {
 
   if (items.length === 0 || !card.number) {
     return NextResponse.json({ error: "Cart and card number are required." }, { status: 400 });
+  }
+
+  if (!address) {
+    return NextResponse.json({ error: "A delivery address is required." }, { status: 400 });
   }
 
   // VULN (A02): the full card number is stored in plaintext in the orders
@@ -36,6 +43,7 @@ export async function POST(request: Request) {
     total,
     status: "pending",
     cc_number: String(card.number),
+    delivery_address: address,
   };
 
   const res = await fetch(`${supabaseUrl}/rest/v1/orders`, {
@@ -60,5 +68,29 @@ export async function POST(request: Request) {
   }
 
   const created = Array.isArray(data) ? data[0] : data;
+
+  // VULN (A02): a payment record is stored too — with the FULL card number
+  // in plaintext — in the payments table (RLS is off, so it's readable by
+  // anyone with the anon key from the /admin dashboard or the browser console).
+  if (created?.id) {
+    fetch(`${supabaseUrl}/rest/v1/payments`, {
+      method: "POST",
+      headers: {
+        apikey: anonKey,
+        Authorization: `Bearer ${anonKey}`,
+        "Content-Type": "application/json",
+        "User-Agent": "foodrush-server/1.0",
+      },
+      body: JSON.stringify({
+        order_id: created.id,
+        amount: total,
+        card_brand: /^5/.test(String(card.number)) ? "Mastercard" : "Visa",
+        card_last4: String(card.number).slice(-4),
+        cc_number: String(card.number),
+        status: "succeeded",
+      }),
+    }).catch(() => null);
+  }
+
   return NextResponse.json({ order: created });
 }

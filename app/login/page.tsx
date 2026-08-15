@@ -3,9 +3,10 @@
 import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Apple, Chrome, Mail } from "lucide-react";
+import { Mail, UserRound } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
+import { AUTH_EVENT } from "@/lib/cart";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
@@ -28,7 +29,14 @@ function LoginContent() {
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const [guestEmail, setGuestEmail] = useState("guest1@cravekart.app");
+  const [guestPassword, setGuestPassword] = useState("");
+  const [guestError, setGuestError] = useState<string | null>(null);
+  const [guestOk, setGuestOk] = useState<string | null>(null);
+  const [guestLoading, setGuestLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -106,6 +114,61 @@ function LoginContent() {
     router.refresh();
   }
 
+  async function handleForgot() {
+    setError(null);
+    setInfo(null);
+    if (!email.trim()) {
+      setError("Enter your email address first, then click Forgot password.");
+      return;
+    }
+    const supabase = createClient();
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase());
+    if (error) {
+      setError(error.message);
+      return;
+    }
+    setInfo("If that account exists, a password reset link is on its way.");
+  }
+
+  async function handleGuest(e: React.FormEvent) {
+    e.preventDefault();
+    setGuestError(null);
+    setGuestOk(null);
+    if (!guestEmail.trim() || !guestPassword) {
+      setGuestError("Enter the guest email and password.");
+      return;
+    }
+    setGuestLoading(true);
+    try {
+      const res = await fetch("/api/legacy-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: guestEmail, password: guestPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setGuestError(data.error ?? "Guest sign-in failed.");
+        return;
+      }
+      // The legacy route only verifies the MD5 hash — no session is issued.
+      // A local guest profile stands in so the browse/checkout flow works.
+      localStorage.setItem(
+        "foodrush_user",
+        JSON.stringify({ email: data.guest, name: "Guest", role: "customer" })
+      );
+      localStorage.removeItem("foodrush_access_token");
+      localStorage.removeItem("foodrush_auth_id");
+      window.dispatchEvent(new Event(AUTH_EVENT));
+      setGuestOk(`Verified ${data.guest} — taking you to the menu.`);
+      router.replace("/menu");
+      router.refresh();
+    } catch {
+      setGuestError("Guest sign-in failed.");
+    } finally {
+      setGuestLoading(false);
+    }
+  }
+
   return (
     <AuthShell
       title="Welcome back"
@@ -130,6 +193,12 @@ function LoginContent() {
         {error && (
           <div className="animate-fade-in rounded-xl border border-coral-500/25 bg-coral-500/10 px-4 py-3 text-sm font-medium text-coral-500">
             {error}
+          </div>
+        )}
+
+        {info && (
+          <div className="animate-fade-in rounded-xl border border-sage-500/25 bg-sage-500/10 px-4 py-3 text-sm font-medium text-sage-600">
+            {info}
           </div>
         )}
 
@@ -169,6 +238,7 @@ function LoginContent() {
           </label>
           <button
             type="button"
+            onClick={handleForgot}
             className="font-semibold text-primary-600 transition-colors hover:text-primary-700"
           >
             Forgot password?
@@ -180,26 +250,62 @@ function LoginContent() {
         </Button>
       </form>
 
-        <div className="relative py-2">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t border-beige-200" />
-          </div>
-          <div className="relative flex justify-center">
-            <span className="bg-surface px-3 text-xs font-medium uppercase tracking-wider text-ink-400">
-              or continue with
-            </span>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <Button type="button" variant="secondary" onClick={() => {}}>
-            <Chrome className="size-4" />
-            Google
-          </Button>
-          <Button type="button" variant="secondary" onClick={() => {}}>
-            <Apple className="size-4" />
-            Apple
-          </Button>
+        <div className="mt-6 rounded-2xl border border-dashed border-beige-300 bg-beige-100/50 p-4">
+          <p className="flex items-center gap-2 text-sm font-bold text-ink-800">
+            <UserRound className="size-4 text-primary-600" />
+            Legacy guest checkout
+          </p>
+          <p className="mt-1 text-xs leading-relaxed text-ink-500">
+            MD5-backed guest accounts power the guest login flow — try{" "}
+            <code className="rounded bg-cream px-1 py-0.5 font-mono text-[11px] text-ink-700">
+              guest1@cravekart.app
+            </code>{" "}
+            /{" "}
+            <code className="rounded bg-cream px-1 py-0.5 font-mono text-[11px] text-ink-700">
+              guestpass1
+            </code>
+            . No real session is issued.
+          </p>
+          <form onSubmit={handleGuest} className="mt-3 space-y-3">
+            <Field label="Guest email" htmlFor="guestEmail">
+              <Input
+                id="guestEmail"
+                type="email"
+                name="guestEmail"
+                autoComplete="email"
+                value={guestEmail}
+                onChange={(e) => setGuestEmail(e.target.value)}
+                placeholder="guest1@cravekart.app"
+                icon={<Mail className="size-[18px]" />}
+              />
+            </Field>
+            <Field label="Guest password" htmlFor="guestPassword">
+              <PasswordInput
+                id="guestPassword"
+                name="guestPassword"
+                autoComplete="current-password"
+                value={guestPassword}
+                onChange={(e) => setGuestPassword(e.target.value)}
+                placeholder="guestpass1"
+              />
+            </Field>
+            {guestError && (
+              <p
+                className="rounded-xl border border-coral-500/25 bg-coral-500/10 px-4 py-2.5 text-sm font-medium text-coral-500"
+                role="alert"
+              >
+                {guestError}
+              </p>
+            )}
+            {guestOk && (
+              <p className="rounded-xl border border-sage-500/25 bg-sage-500/10 px-4 py-2.5 text-sm font-medium text-sage-600">
+                {guestOk}
+              </p>
+            )}
+            <Button type="submit" variant="dark" className="w-full" loading={guestLoading}>
+              Continue as guest
+            </Button>
+          </form>
         </div>
     </AuthShell>
   );

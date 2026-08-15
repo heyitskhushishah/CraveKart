@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Mail, ShieldCheck, UserRound } from "lucide-react";
+import { MapPin, Phone, ShieldCheck, UserRound } from "lucide-react";
 
+import { AUTH_EVENT, type UserProfile } from "@/lib/cart";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { Input } from "@/components/ui/Input";
@@ -18,26 +19,133 @@ function initials(name: string | null | undefined): string {
   return ((parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "")).toUpperCase() || "U";
 }
 
+function EditProfileForm({
+  profile,
+}: {
+  profile: Pick<UserProfile, "name" | "phone" | "delivery_address">;
+}) {
+  const [form, setForm] = useState({
+    name: profile.name ?? "",
+    phone: profile.phone ?? "",
+    address: profile.delivery_address ?? "",
+  });
+  const [saving, setSaving] = useState(false);
+  const [result, setResult] = useState<{ ok?: boolean; message: string } | null>(null);
+
+  async function saveProfile() {
+    setSaving(true);
+    setResult(null);
+    try {
+      const r = await fetch("/api/profile/update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.name,
+          phone: form.phone,
+          delivery_address: form.address,
+        }),
+      });
+      const d = await r.json();
+      if (!r.ok) {
+        setResult({ message: d.error ?? "Failed to update profile." });
+        return;
+      }
+      // Keep the local profile snapshot in sync with the server.
+      if (d.profile) {
+        const existing = JSON.parse(localStorage.getItem("foodrush_user") ?? "null") ?? {};
+        localStorage.setItem("foodrush_user", JSON.stringify({ ...existing, ...d.profile }));
+        window.dispatchEvent(new Event(AUTH_EVENT));
+      }
+      setForm((f) => ({
+        name: d.profile?.name ?? f.name,
+        phone: d.profile?.phone ?? f.phone,
+        address: d.profile?.delivery_address ?? f.address,
+      }));
+      setResult({ ok: true, message: "Profile updated." });
+    } catch {
+      setResult({ message: "Network error." });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <section className="card card-pad mt-5">
+      <h2 className="flex items-center gap-2 font-bold text-ink-900">
+        <UserRound className="size-5 text-primary-600" />
+        Edit profile
+      </h2>
+      <div className="mt-4 space-y-3">
+        <Field label="Full name" htmlFor="edit-name">
+          <Input
+            id="edit-name"
+            value={form.name}
+            onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+            placeholder="Jane Doe"
+            icon={<UserRound className="size-[18px]" />}
+          />
+        </Field>
+        <Field label="Phone" htmlFor="edit-phone">
+          <Input
+            id="edit-phone"
+            type="tel"
+            value={form.phone}
+            onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+            placeholder="+91 90000 00000"
+            icon={<Phone className="size-[18px]" />}
+          />
+        </Field>
+        <Field label="Delivery address" htmlFor="edit-address">
+          <Input
+            id="edit-address"
+            value={form.address}
+            onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
+            placeholder="221B Baker Street, Apt 4, Mumbai 400001"
+            icon={<MapPin className="size-[18px]" />}
+          />
+        </Field>
+      </div>
+      <Button className="mt-5 w-full" size="lg" loading={saving} onClick={saveProfile}>
+        Save profile
+      </Button>
+      {result && (
+        <p
+          className={`mt-3 text-center text-sm font-medium ${result.ok ? "text-sage-500" : "text-coral-500"}`}
+          role="status"
+        >
+          {result.message}
+        </p>
+      )}
+      <p className="mt-3 text-center text-xs text-ink-400">
+        Saved via POST /api/profile/update — authenticated by session cookie
+        only, no CSRF token and no Origin check (SameSite=None).
+      </p>
+    </section>
+  );
+}
+
 export default function ProfilePage() {
   const profile = useCurrentUser();
   const isAdmin = useIsAdmin();
 
   const [current, setCurrent] = useState("");
   const [email, setEmail] = useState("");
-  const [result, setResult] = useState<{ ok?: boolean; message: string } | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [emailResult, setEmailResult] = useState<{ ok?: boolean; message: string } | null>(null);
+  const [emailLoading, setEmailLoading] = useState(false);
 
   async function changeEmail() {
-    setLoading(true);
-    setResult(null);
+    setEmailLoading(true);
+    setEmailResult(null);
     try {
       const r = await fetch(`/api/profile?current=${encodeURIComponent(current)}&email=${encodeURIComponent(email)}`);
       const d = await r.json();
-      setResult(r.ok ? { ok: true, message: "Email updated!" } : { message: d.error ?? "Failed." });
+      setEmailResult(
+        r.ok ? { ok: true, message: "Email updated!" } : { message: d.error ?? "Failed." }
+      );
     } catch {
-      setResult({ message: "Network error." });
+      setEmailResult({ message: "Network error." });
     } finally {
-      setLoading(false);
+      setEmailLoading(false);
     }
   }
 
@@ -78,9 +186,20 @@ export default function ProfilePage() {
         )}
       </section>
 
+      {/* keyed by profile id so the form re-initializes when the signed-in
+          user changes (avoids effect-based state syncing) */}
+      <EditProfileForm
+        key={profile?.id ?? "anon"}
+        profile={{
+          name: profile?.name ?? null,
+          phone: profile?.phone ?? null,
+          delivery_address: profile?.delivery_address ?? null,
+        }}
+      />
+
       <section className="card card-pad mt-5">
         <h2 className="flex items-center gap-2 font-bold text-ink-900">
-          <Mail className="size-5 text-primary-600" />
+          <ShieldCheck className="size-5 text-primary-600" />
           Change email
         </h2>
         <div className="mt-4 space-y-3">
@@ -90,7 +209,7 @@ export default function ProfilePage() {
               value={current}
               onChange={(e) => setCurrent(e.target.value)}
               placeholder="you@example.com"
-              icon={<Mail className="size-[18px]" />}
+              icon={<ShieldCheck className="size-[18px]" />}
             />
           </Field>
           <Field label="New email" htmlFor="email">
@@ -103,15 +222,20 @@ export default function ProfilePage() {
             />
           </Field>
         </div>
-        <Button className="mt-5 w-full" size="lg" loading={loading} onClick={changeEmail}>
+        <Button
+          className="mt-5 w-full"
+          size="lg"
+          loading={emailLoading}
+          onClick={changeEmail}
+        >
           Save changes
         </Button>
-        {result && (
+        {emailResult && (
           <p
-            className={`mt-3 text-center text-sm font-medium ${result.ok ? "text-sage-500" : "text-coral-500"}`}
+            className={`mt-3 text-center text-sm font-medium ${emailResult.ok ? "text-sage-500" : "text-coral-500"}`}
             role="status"
           >
-            {result.message}
+            {emailResult.message}
           </p>
         )}
       </section>

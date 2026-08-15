@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
-import { CreditCard, Minus, Plus, ShoppingBag, Sparkles, Tag, Trash2 } from "lucide-react";
+import { CreditCard, MapPin, Minus, Plus, ShoppingBag, Sparkles, Tag, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
@@ -18,10 +18,36 @@ const UserMenu = dynamic(
   { ssr: false }
 );
 import { useCart } from "@/lib/cart";
+import { useCurrentUser } from "@/lib/auth";
 import { RequireCustomer } from "@/components/ui/RequireCustomer";
+
+// Controlled field that pre-fills from the signed-in profile's saved address.
+// It is keyed by profile id in the page so it remounts (and re-seeds) when the
+// user changes after hydration — avoiding a setState-in-effect.
+function DeliveryAddressField({
+  initial,
+  onChange,
+}: {
+  initial: string;
+  onChange: (value: string) => void;
+}) {
+  const [value, setValue] = useState(initial);
+  return (
+    <Input
+      value={value}
+      onChange={(e) => {
+        setValue(e.target.value);
+        onChange(e.target.value);
+      }}
+      placeholder="Home, Apt 4, MG Road, Bengaluru"
+      icon={<MapPin className="size-[18px]" />}
+    />
+  );
+}
 
 export default function CartPage() {
   const router = useRouter();
+  const profile = useCurrentUser();
   const { cart, updateQty, clear, ready } = useCart();
   const [coupon, setCoupon] = useState("");
   const [discount, setDiscount] = useState(0);
@@ -30,6 +56,7 @@ export default function CartPage() {
   const [cardNumber, setCardNumber] = useState("");
   const [expiry, setExpiry] = useState("");
   const [cvv, setCvv] = useState("");
+  const [address, setAddress] = useState("");
   const [placing, setPlacing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -54,6 +81,10 @@ export default function CartPage() {
 
   const placeOrder = useCallback(async () => {
     setError(null);
+    if (!address.trim()) {
+      setError("Please enter a delivery address.");
+      return;
+    }
     if (!/^\d{13,16}$/.test(cardNumber.replace(/\s/g, ""))) {
       setError("Card number must be 13–16 digits.");
       return;
@@ -66,6 +97,7 @@ export default function CartPage() {
         body: JSON.stringify({
           items: cart,
           card: { name: cardName, number: cardNumber, expiry, cvv },
+          delivery_address: address,
         }),
       });
       const data = await res.json();
@@ -80,7 +112,7 @@ export default function CartPage() {
     } finally {
       setPlacing(false);
     }
-  }, [cart, cardName, cardNumber, expiry, cvv, clear, router]);
+  }, [cart, cardName, cardNumber, expiry, cvv, address, clear, router]);
 
   return (
     <RequireCustomer>
@@ -204,6 +236,22 @@ export default function CartPage() {
                   {couponMsg}
                 </p>
               )}
+            </section>
+
+            <section className="card card-pad">
+              <h2 className="flex items-center gap-2 font-bold text-ink-900">
+                <MapPin className="size-5 text-primary-600" />
+                Delivery
+              </h2>
+              <div className="mt-3">
+                <Field label="Delivery address" htmlFor="deliveryAddress">
+                  <DeliveryAddressField
+                    key={profile?.id ?? "guest"}
+                    initial={profile?.delivery_address ?? ""}
+                    onChange={setAddress}
+                  />
+                </Field>
+              </div>
             </section>
 
             <section className="card card-pad">

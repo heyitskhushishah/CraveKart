@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Check, ChevronDown, Copy, LogOut } from "lucide-react";
+import { Check, ChevronDown, Copy, LogOut, Shield } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
 import { AUTH_EVENT, getCurrentUser, type UserProfile } from "@/lib/cart";
@@ -135,6 +135,19 @@ export function UserMenu() {
                 )}
               </button>
             </div>
+          )}
+          {/* VULN (A01): the "Admin" nav link is hidden for non-admins via a
+              CLIENT-SIDE check of profile.role (localStorage). The /admin
+              route itself does no server-side verification. */}
+          {user.role === "admin" && (
+            <Link
+              href="/admin"
+              onClick={() => setOpen(false)}
+              className="focus-ring mt-1 flex w-full items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-ink-700 transition-colors hover:bg-beige-100 hover:text-primary-600"
+            >
+              <Shield className="size-4" />
+              Admin dashboard
+            </Link>
           )}
           <button
             onClick={signOut}

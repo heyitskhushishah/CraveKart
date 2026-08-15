@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   Bike,
@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
+import { addItemToCart } from "@/lib/cart";
 import { Button } from "@/components/ui/Button";
 import { PageShell } from "@/components/ui/PageShell";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -78,6 +79,7 @@ function cardBrand(number: string): string {
 }
 
 export default function OrderDetailPage() {
+  const router = useRouter();
   const params = useParams<{ id: string }>();
   const [order, setOrder] = useState<Order | null>(null);
   const [error, setError] = useState(false);
@@ -107,6 +109,19 @@ export default function OrderDetailPage() {
     (s, it) => s + (Number(it.price) || 0) * (Number(it.qty) || 1),
     0
   );
+
+  function orderAgain() {
+    for (const line of order?.items ?? []) {
+      if (line.name) {
+        addItemToCart({
+          id: line.id ?? line.name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+          name: line.name,
+          price: line.price ?? 0,
+        });
+      }
+    }
+    router.push("/cart");
+  }
 
   return (
     <RequireCustomer>
@@ -264,12 +279,10 @@ export default function OrderDetailPage() {
             </p>
 
             <div className="mt-6 text-center">
-              <Link href="/menu">
-                <Button>
-                  <RotateCcw className="size-4" />
-                  Order again
-                </Button>
-              </Link>
+              <Button onClick={orderAgain}>
+                <RotateCcw className="size-4" />
+                Order again
+              </Button>
             </div>
           </>
         )}
