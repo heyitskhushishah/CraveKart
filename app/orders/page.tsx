@@ -13,7 +13,7 @@ import { Badge, statusTone, STATUS_LABEL } from "@/components/ui/Badge";
 import { RequireCustomer } from "@/components/ui/RequireCustomer";
 
 type Order = {
-  id: string;
+  id: number;
   restaurant_name: string;
   total: number;
   status: string;
@@ -71,10 +71,10 @@ export default function OrdersPage() {
                   <p className="truncate font-bold text-ink-900">
                     {o.restaurant_name}
                   </p>
-                  <p className="mt-0.5 text-sm text-ink-500">
-                    {new Date(o.created_at).toLocaleString()} ·{" "}
-                    <span className="font-mono">{o.id.slice(0, 8)}…</span>
-                  </p>
+                    <p className="mt-0.5 text-sm text-ink-500">
+                      {new Date(o.created_at).toLocaleString()} ·{" "}
+                      <span className="font-mono">Order #{o.id}</span>
+                    </p>
                 </div>
                 <div className="hidden sm:block">
                   <Badge tone={statusTone(o.status)} dot>

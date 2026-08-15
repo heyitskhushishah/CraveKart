@@ -17,7 +17,7 @@ const UserMenu = dynamic(
 );
 
 type AdminOrder = {
-  id: string;
+  id: number;
   user_id: string | null;
   restaurant_name: string | null;
   items: { name?: string; price?: number; qty?: number }[];
@@ -39,7 +39,7 @@ export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [result, setResult] = useState<{ ok?: boolean; message: string } | null>(null);
-  const [marking, setMarking] = useState<string | null>(null);
+  const [marking, setMarking] = useState<number | null>(null);
 
   const isAdmin = profile?.role === "admin";
 
@@ -55,7 +55,7 @@ export default function AdminOrdersPage() {
     };
   }, []);
 
-  async function markComplete(id: string) {
+  async function markComplete(id: number) {
     setMarking(id);
     setResult(null);
     try {
@@ -152,7 +152,7 @@ export default function AdminOrdersPage() {
                       <tr key={o.id} className="transition-colors hover:bg-cream/70">
                         <td className={`${tableCell}`}>
                           <p className="font-mono text-xs font-semibold text-ink-900">
-                            {o.id.slice(0, 8)}…
+                            Order #{o.id}
                           </p>
                           <p className="mt-0.5 text-xs text-ink-400">
                             {new Date(o.created_at).toLocaleString()}
