@@ -7,6 +7,7 @@ import { ArrowLeft, CreditCard, Receipt } from "lucide-react";
 import { Logo } from "@/components/ui/Logo";
 import { Button } from "@/components/ui/Button";
 import { AdminNav } from "@/components/ui/AdminNav";
+import { useCurrentUser } from "@/lib/auth";
 import type { AdminOrder } from "@/app/api/admin/orders/route";
 
 const statusLabel: Record<string, string> = {
@@ -17,13 +18,7 @@ const statusLabel: Record<string, string> = {
 };
 
 export default function AdminOrdersPage() {
-  const [profile] = useState<{ email?: string; role?: string } | null>(() =>
-    JSON.parse(
-      typeof window !== "undefined"
-        ? (localStorage.getItem("foodrush_user") ?? "null")
-        : "null"
-    )
-  );
+  const profile = useCurrentUser();
   const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [loading, setLoading] = useState(true);
 

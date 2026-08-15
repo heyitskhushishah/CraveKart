@@ -14,6 +14,7 @@ import {
 import { Logo } from "@/components/ui/Logo";
 import { Button } from "@/components/ui/Button";
 import { AdminNav } from "@/components/ui/AdminNav";
+import { useCurrentUser } from "@/lib/auth";
 
 type UserRow = {
   id: string;
@@ -26,13 +27,7 @@ type Coupon = { id: string; code: string; discount: number; uses: number; max_us
 type OrderRow = { id: string; user_id: string | null; total: number; status: string };
 
 export default function AdminPage() {
-  const [profile] = useState<{ email?: string; role?: string } | null>(() =>
-    JSON.parse(
-      typeof window !== "undefined"
-        ? (localStorage.getItem("foodrush_user") ?? "null")
-        : "null"
-    )
-  );
+  const profile = useCurrentUser();
   const [users, setUsers] = useState<UserRow[]>([]);
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [orders, setOrders] = useState<OrderRow[]>([]);
