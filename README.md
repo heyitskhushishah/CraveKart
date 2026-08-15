@@ -1,4 +1,4 @@
-# FoodRush — Deliberately Vulnerable Food-Delivery App
+# CraveKart — Deliberately Vulnerable Food-Delivery App
 
 A university security-project web app built with **Next.js (App Router) + TypeScript +
 Tailwind v4 + Supabase (cloud)**. Every feature is intentionally buggy and maps to a

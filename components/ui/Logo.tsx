@@ -22,7 +22,7 @@ export function Logo({
       </span>
       {withText && (
         <span className={`${text} font-extrabold tracking-tight text-ink-900`}>
-          Food<span className="text-primary-600">Rush</span>
+          Crave<span className="text-primary-600">Kart</span>
         </span>
       )}
     </div>

@@ -1,4 +1,4 @@
-FoodRush Demo Receipt
+CraveKart Demo Receipt
 =====================
 Order: demo-0001
 Items: Margherita Pizza x2
