@@ -7,6 +7,7 @@ import { ArrowLeft, CheckCircle2, CreditCard } from "lucide-react";
 
 import { Logo } from "@/components/ui/Logo";
 import { Button } from "@/components/ui/Button";
+import { RequireCustomer } from "@/components/ui/RequireCustomer";
 
 type CartLine = { id?: string; name?: string; price?: number; qty?: number };
 type Order = {
@@ -44,6 +45,7 @@ export default function OrderDetailPage() {
   }, [params.id]);
 
   return (
+    <RequireCustomer>
     <div className="relative flex min-h-screen flex-col overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-cream via-beige-100 to-primary-100" />
       <div className="animate-blob absolute -right-24 top-16 size-96 rounded-full bg-primary-200/50 blur-3xl" />
@@ -126,5 +128,6 @@ export default function OrderDetailPage() {
         )}
       </main>
     </div>
+    </RequireCustomer>
   );
 }

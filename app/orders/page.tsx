@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, Receipt } from "lucide-react";
 
 import { Logo } from "@/components/ui/Logo";
+import { RequireCustomer } from "@/components/ui/RequireCustomer";
 
 type Order = {
   id: string;
@@ -39,6 +40,7 @@ export default function OrdersPage() {
   }, []);
 
   return (
+    <RequireCustomer>
     <div className="relative flex min-h-screen flex-col overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-cream via-beige-100 to-primary-100" />
       <div className="animate-blob absolute -left-24 top-16 size-96 rounded-full bg-primary-200/50 blur-3xl" />
@@ -100,5 +102,6 @@ export default function OrdersPage() {
         )}
       </main>
     </div>
+    </RequireCustomer>
   );
 }

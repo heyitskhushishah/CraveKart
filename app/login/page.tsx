@@ -97,7 +97,11 @@ function LoginContent() {
     // so they switch to this user's saved cart.
     window.dispatchEvent(new Event("foodrush:auth-changed"));
 
-    const next = searchParams.get("next") ?? "/";
+    const role = profile?.role as string | undefined;
+    const requested = searchParams.get("next");
+    const next =
+      requested ??
+      (role === "admin" ? "/admin" : "/menu");
     router.replace(next);
     router.refresh();
   }

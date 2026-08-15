@@ -41,6 +41,12 @@ Notes:
 - **Client-side admin gate** — `/admin` checks `localStorage["foodrush_user"].role`
   only; `/api/admin/users` has no server authorization and dumps all users, coupons and
   orders. Set `foodrush_user` = `{"role":"admin"}` in DevTools to get in.
+- **Role-aware UI (client-side)** — the header, home page and customer pages
+  (`/menu`, `/cart`, `/orders`, `/orders/[id]`, `/track`, `/product/[id]`) call
+  `RequireCustomer`, which redirects anyone whose `foodrush_user.role` is `admin`
+  straight to `/admin`; admins only see the dashboard, `/admin/orders` and `/profile`.
+  The redirect and the admin gate are both client-only checks, so a customer who sets
+  `role` to `admin` sees the whole panel.
 - **IDOR** — `/orders/[id]` and `/api/orders/[id]` fetch any order (including the stored
   card number) by id, no ownership check.
 - **RLS disabled everywhere** — the anon key can read/write every table.
@@ -112,10 +118,10 @@ Notes:
 ## Project structure
 
 - `app/` — pages (`login`, `register`, `menu`, `product/[id]`, `cart`, `orders`,
-  `orders/[id]`, `admin`, `track`, `profile`) and API routes (`api/login`,
-  `api/search`, `api/coupon`, `api/checkout`, `api/orders`, `api/orders/[id]`,
-  `api/product/[id]`, `api/reviews`, `api/admin/users`, `api/track`, `api/receipt`,
-  `api/webhook`, `api/profile`).
+  `orders/[id]`, `admin`, `admin/orders`, `track`, `profile`) and API routes
+  (`api/login`, `api/search`, `api/coupon`, `api/checkout`, `api/orders`,
+  `api/orders/[id]`, `api/product/[id]`, `api/reviews`, `api/admin/users`,
+  `api/admin/orders`, `api/track`, `api/receipt`, `api/webhook`, `api/profile`).
 - `components/` — design-system UI (`ui/`) and auth layout (`auth/AuthShell.tsx`).
 - `lib/supabase/` — browser + server clients.
 - `supabase/migrations/` — portable SQL migrations for the cloud database.

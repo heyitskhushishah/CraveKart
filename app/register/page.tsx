@@ -86,13 +86,13 @@ export default function RegisterPage() {
       if (profile) {
         localStorage.setItem("foodrush_user", JSON.stringify(profile));
       }
-      router.replace("/");
+      router.replace("/menu");
       router.refresh();
     } else {
       // Email confirmation is enabled in this Supabase project.
       setError("Account created! Check your email to confirm your account, then sign in.");
       setLoading(false);
-      router.replace("/login?next=/");
+      router.replace("/login?next=/menu");
     }
   }
 

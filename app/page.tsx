@@ -1,10 +1,15 @@
+"use client";
+
 import Link from "next/link";
-import { ArrowRight, Flame } from "lucide-react";
+import { ArrowRight, Flame, Receipt } from "lucide-react";
 
 import { Logo } from "@/components/ui/Logo";
 import { Button } from "@/components/ui/Button";
+import { useIsAdmin } from "@/lib/auth";
 
 export default function HomePage() {
+  const isAdmin = useIsAdmin();
+
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-cream via-beige-100 to-primary-100" />
@@ -14,51 +19,114 @@ export default function HomePage() {
       <header className="relative z-10 flex items-center justify-between px-6 py-6 sm:px-10">
         <Logo size="lg" />
         <nav className="flex items-center gap-3">
-          <Link href="/login" className="focus-ring rounded-full px-4 py-2 text-sm font-semibold text-ink-700 transition-colors hover:text-primary-600">
-            Sign in
-          </Link>
-          <Link href="/register">
-            <Button size="sm">Get started</Button>
-          </Link>
+          {isAdmin ? (
+            <Link href="/admin">
+              <Button size="sm">Dashboard</Button>
+            </Link>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="focus-ring rounded-full px-4 py-2 text-sm font-semibold text-ink-700 transition-colors hover:text-primary-600"
+              >
+                Sign in
+              </Link>
+              <Link href="/register">
+                <Button size="sm">Get started</Button>
+              </Link>
+            </>
+          )}
         </nav>
       </header>
 
       <main className="relative z-10 flex flex-1 flex-col items-center justify-center px-6 pb-24 text-center">
-        <span className="glass inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[13px] font-semibold text-ink-700">
-          <Flame className="size-3.5 text-primary-600" />
-          Hot food, delivered in 30 minutes
-        </span>
-        <h1 className="mt-6 max-w-2xl text-5xl font-extrabold leading-[1.06] tracking-tight text-ink-900 sm:text-6xl">
-          Your cravings,{" "}
-          <span className="bg-gradient-to-r from-primary-600 to-coral-500 bg-clip-text text-transparent">
-            one tap away
-          </span>
-        </h1>
-        <p className="mt-5 max-w-xl text-lg text-ink-500">
-          CraveKart connects you with the best restaurants nearby — from sizzling
-          burgers to soul-warming bowls.
-        </p>
-        <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
-          <Link href="/menu">
-            <Button size="lg">
-              Order now <ArrowRight className="size-4" />
-            </Button>
-          </Link>
-          <Link href="/login">
-            <Button size="lg" variant="secondary">
-              Sign in
-            </Button>
-          </Link>
-        </div>
-
-        <footer className="mt-16 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-ink-500">
-          <Link href="/menu" className="transition-colors hover:text-primary-600">Menu</Link>
-          <Link href="/orders" className="transition-colors hover:text-primary-600">Orders</Link>
-          <Link href="/track" className="transition-colors hover:text-primary-600">Track</Link>
-          <Link href="/admin" className="transition-colors hover:text-primary-600">Admin</Link>
-          <Link href="/profile" className="transition-colors hover:text-primary-600">Profile</Link>
-          <Link href="/cart" className="transition-colors hover:text-primary-600">Cart</Link>
-        </footer>
+        {isAdmin ? (
+          <>
+            <span className="glass inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[13px] font-semibold text-ink-700">
+              <Flame className="size-3.5 text-primary-600" />
+              Admin console
+            </span>
+            <h1 className="mt-6 max-w-2xl text-5xl font-extrabold leading-[1.06] tracking-tight text-ink-900 sm:text-6xl">
+              Manage your{" "}
+              <span className="bg-gradient-to-r from-primary-600 to-coral-500 bg-clip-text text-transparent">
+                CraveKart
+              </span>
+            </h1>
+            <p className="mt-5 max-w-xl text-lg text-ink-500">
+              Oversee users, track orders, and keep the kitchen humming — all from
+              the admin dashboard.
+            </p>
+            <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
+              <Link href="/admin">
+                <Button size="lg">
+                  Open dashboard <ArrowRight className="size-4" />
+                </Button>
+              </Link>
+              <Link href="/admin/orders">
+                <Button size="lg" variant="secondary">
+                  View orders <Receipt className="size-4" />
+                </Button>
+              </Link>
+            </div>
+            <footer className="mt-16 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-ink-500">
+              <Link href="/admin" className="transition-colors hover:text-primary-600">
+                Dashboard
+              </Link>
+              <Link href="/admin/orders" className="transition-colors hover:text-primary-600">
+                Orders
+              </Link>
+              <Link href="/profile" className="transition-colors hover:text-primary-600">
+                Profile
+              </Link>
+            </footer>
+          </>
+        ) : (
+          <>
+            <span className="glass inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[13px] font-semibold text-ink-700">
+              <Flame className="size-3.5 text-primary-600" />
+              Hot food, delivered in 30 minutes
+            </span>
+            <h1 className="mt-6 max-w-2xl text-5xl font-extrabold leading-[1.06] tracking-tight text-ink-900 sm:text-6xl">
+              Your cravings,{" "}
+              <span className="bg-gradient-to-r from-primary-600 to-coral-500 bg-clip-text text-transparent">
+                one tap away
+              </span>
+            </h1>
+            <p className="mt-5 max-w-xl text-lg text-ink-500">
+              CraveKart connects you with the best restaurants nearby — from sizzling
+              burgers to soul-warming bowls.
+            </p>
+            <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
+              <Link href="/menu">
+                <Button size="lg">
+                  Order now <ArrowRight className="size-4" />
+                </Button>
+              </Link>
+              <Link href="/login">
+                <Button size="lg" variant="secondary">
+                  Sign in
+                </Button>
+              </Link>
+            </div>
+            <footer className="mt-16 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-ink-500">
+              <Link href="/menu" className="transition-colors hover:text-primary-600">
+                Menu
+              </Link>
+              <Link href="/orders" className="transition-colors hover:text-primary-600">
+                Orders
+              </Link>
+              <Link href="/track" className="transition-colors hover:text-primary-600">
+                Track
+              </Link>
+              <Link href="/profile" className="transition-colors hover:text-primary-600">
+                Profile
+              </Link>
+              <Link href="/cart" className="transition-colors hover:text-primary-600">
+                Cart
+              </Link>
+            </footer>
+          </>
+        )}
       </main>
     </div>
   );

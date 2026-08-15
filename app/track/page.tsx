@@ -6,6 +6,7 @@ import { ArrowLeft, PackageSearch } from "lucide-react";
 
 import { Logo } from "@/components/ui/Logo";
 import { Button } from "@/components/ui/Button";
+import { RequireCustomer } from "@/components/ui/RequireCustomer";
 
 export default function TrackPage() {
   const [input, setInput] = useState("");
@@ -26,6 +27,7 @@ export default function TrackPage() {
   }
 
   return (
+    <RequireCustomer>
     <div className="relative flex min-h-screen flex-col overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-cream via-beige-100 to-primary-100" />
       <div className="animate-blob absolute -right-24 top-16 size-96 rounded-full bg-primary-200/50 blur-3xl" />
@@ -66,5 +68,6 @@ export default function TrackPage() {
         )}
       </main>
     </div>
+    </RequireCustomer>
   );
 }

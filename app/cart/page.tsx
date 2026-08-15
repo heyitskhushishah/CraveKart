@@ -15,6 +15,7 @@ const UserMenu = dynamic(
   { ssr: false }
 );
 import { useCart } from "@/lib/cart";
+import { RequireCustomer } from "@/components/ui/RequireCustomer";
 
 export default function CartPage() {
   const router = useRouter();
@@ -79,6 +80,7 @@ export default function CartPage() {
   }, [cart, cardName, cardNumber, expiry, cvv, clear, router]);
 
   return (
+    <RequireCustomer>
     <div className="relative flex min-h-screen flex-col overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-cream via-beige-100 to-primary-100" />
       <div className="animate-blob absolute -right-24 top-0 size-96 rounded-full bg-primary-200/50 blur-3xl" />
@@ -227,5 +229,6 @@ export default function CartPage() {
         )}
       </main>
     </div>
+    </RequireCustomer>
   );
 }

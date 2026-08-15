@@ -22,6 +22,7 @@ const UserMenu = dynamic(
   { ssr: false }
 );
 import { useCart } from "@/lib/cart";
+import { RequireCustomer } from "@/components/ui/RequireCustomer";
 
 type MenuItem = {
   id: string;
@@ -250,6 +251,7 @@ export default function ProductPage() {
       : "Add to cart";
 
   return (
+    <RequireCustomer>
     <div className="relative flex min-h-screen flex-col overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-cream via-beige-100 to-primary-100" />
       <div className="animate-blob absolute -left-32 top-16 size-96 rounded-full bg-primary-200/50 blur-3xl" />
@@ -530,5 +532,6 @@ export default function ProductPage() {
         </div>
       </div>
     </div>
+    </RequireCustomer>
   );
 }

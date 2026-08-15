@@ -2,10 +2,18 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ArrowLeft, ShieldCheck, Users } from "lucide-react";
+import {
+  ArrowLeft,
+  CreditCard,
+  IndianRupee,
+  Receipt,
+  ShieldCheck,
+  Users,
+} from "lucide-react";
 
 import { Logo } from "@/components/ui/Logo";
 import { Button } from "@/components/ui/Button";
+import { AdminNav } from "@/components/ui/AdminNav";
 
 type UserRow = {
   id: string;
@@ -52,6 +60,9 @@ export default function AdminPage() {
   // editing localStorage (e.g. set foodrush_user to {"role":"admin"}).
   const isAdmin = profile?.role === "admin";
 
+  const revenue = orders.reduce((s, o) => s + Number(o.total || 0), 0);
+  const pending = orders.filter((o) => o.status === "pending").length;
+
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-cream via-beige-100 to-primary-100" />
@@ -89,30 +100,41 @@ export default function AdminPage() {
           </section>
         ) : (
           <>
-            <h1 className="animate-fade-up mt-8 flex items-center gap-3 text-3xl font-extrabold tracking-tight text-ink-900">
-              <ShieldCheck className="size-7 text-primary-600" />
-              Admin panel
-            </h1>
-            <p className="mt-2 text-sm text-ink-500">
-              Signed in as <b>{profile?.email}</b> · role {profile?.role}
-            </p>
+            <div className="animate-fade-up mt-8">
+              <h1 className="flex items-center gap-3 text-3xl font-extrabold tracking-tight text-ink-900">
+                <ShieldCheck className="size-7 text-primary-600" />
+                Admin dashboard
+              </h1>
+              <p className="mt-2 text-sm text-ink-500">
+                Signed in as <b>{profile?.email}</b> · role {profile?.role}
+              </p>
+              <AdminNav />
+            </div>
 
             {loading ? (
               <div className="mt-8 h-72 animate-pulse rounded-3xl bg-beige-200/60" />
             ) : (
               <div className="mt-8 grid gap-6">
-                <section className="grid grid-cols-3 gap-4">
+                <section className="grid grid-cols-2 gap-4 sm:grid-cols-4">
                   <div className="rounded-3xl border border-beige-200 bg-white p-5 text-center shadow-card">
-                    <p className="text-3xl font-extrabold text-ink-900">{users.length}</p>
+                    <Users className="mx-auto size-5 text-primary-600" />
+                    <p className="mt-2 text-3xl font-extrabold text-ink-900">{users.length}</p>
                     <p className="mt-1 text-sm text-ink-500">Users</p>
                   </div>
                   <div className="rounded-3xl border border-beige-200 bg-white p-5 text-center shadow-card">
-                    <p className="text-3xl font-extrabold text-ink-900">{orders.length}</p>
+                    <Receipt className="mx-auto size-5 text-primary-600" />
+                    <p className="mt-2 text-3xl font-extrabold text-ink-900">{orders.length}</p>
                     <p className="mt-1 text-sm text-ink-500">Orders</p>
                   </div>
                   <div className="rounded-3xl border border-beige-200 bg-white p-5 text-center shadow-card">
-                    <p className="text-3xl font-extrabold text-ink-900">{coupons.length}</p>
-                    <p className="mt-1 text-sm text-ink-500">Coupons</p>
+                    <IndianRupee className="mx-auto size-5 text-primary-600" />
+                    <p className="mt-2 text-3xl font-extrabold text-ink-900">₹{revenue.toFixed(2)}</p>
+                    <p className="mt-1 text-sm text-ink-500">Revenue</p>
+                  </div>
+                  <div className="rounded-3xl border border-beige-200 bg-white p-5 text-center shadow-card">
+                    <CreditCard className="mx-auto size-5 text-primary-600" />
+                    <p className="mt-2 text-3xl font-extrabold text-ink-900">{pending}</p>
+                    <p className="mt-1 text-sm text-ink-500">Pending</p>
                   </div>
                 </section>
 

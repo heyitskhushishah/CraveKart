@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { Check, MapPin, Plus, Search, ShoppingBag, SlidersHorizontal, Star, Timer } from "lucide-react";
+import { Check, LayoutDashboard, MapPin, Plus, Search, ShoppingBag, SlidersHorizontal, Star, Timer } from "lucide-react";
 
 import { Logo } from "@/components/ui/Logo";
 import dynamic from "next/dynamic";
@@ -11,6 +11,8 @@ const UserMenu = dynamic(
   { ssr: false }
 );
 import { useCart } from "@/lib/cart";
+import { useIsAdmin } from "@/lib/auth";
+import { RequireCustomer } from "@/components/ui/RequireCustomer";
 
 type MenuItem = {
   id: string;
@@ -48,6 +50,8 @@ export default function MenuPage() {
   const [activeCuisine, setActiveCuisine] = useState<string | null>(null);
   const [activeRestaurant, setActiveRestaurant] = useState<string | null>(null);
   const [activePrice, setActivePrice] = useState<string | null>(null);
+
+  const isAdmin = useIsAdmin();
 
   // Debounced search term
   useEffect(() => {
@@ -113,6 +117,7 @@ export default function MenuPage() {
   ) => setter((prev) => (prev === value ? null : value));
 
   return (
+    <RequireCustomer>
     <div className="relative flex min-h-screen flex-col overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-cream via-beige-100 to-primary-100" />
       <div className="animate-blob absolute -right-24 top-0 size-96 rounded-full bg-primary-200/50 blur-3xl" />
@@ -122,18 +127,28 @@ export default function MenuPage() {
           <Logo size="md" />
         </Link>
         <nav className="flex items-center gap-3">
-          <Link
-            href="/cart"
-            className="focus-ring relative inline-flex items-center gap-2 rounded-full border border-beige-200 bg-white px-4 py-2 text-sm font-semibold text-ink-700 transition-colors hover:border-primary-300 hover:text-primary-600"
-          >
-            <ShoppingBag className="size-4" />
-            Cart
-            {cartCount > 0 && (
-              <span className="absolute -right-1 -top-1 grid min-w-5 place-items-center rounded-full bg-primary-600 px-1 text-[11px] font-bold text-white shadow-glow">
-                {cartCount}
-              </span>
-            )}
-          </Link>
+          {isAdmin ? (
+            <Link
+              href="/admin"
+              className="focus-ring inline-flex items-center gap-2 rounded-full border border-beige-200 bg-white px-4 py-2 text-sm font-semibold text-ink-700 transition-colors hover:border-primary-300 hover:text-primary-600"
+            >
+              <LayoutDashboard className="size-4" />
+              Admin
+            </Link>
+          ) : (
+            <Link
+              href="/cart"
+              className="focus-ring relative inline-flex items-center gap-2 rounded-full border border-beige-200 bg-white px-4 py-2 text-sm font-semibold text-ink-700 transition-colors hover:border-primary-300 hover:text-primary-600"
+            >
+              <ShoppingBag className="size-4" />
+              Cart
+              {cartCount > 0 && (
+                <span className="absolute -right-1 -top-1 grid min-w-5 place-items-center rounded-full bg-primary-600 px-1 text-[11px] font-bold text-white shadow-glow">
+                  {cartCount}
+                </span>
+              )}
+            </Link>
+          )}
           <UserMenu />
         </nav>
       </header>
@@ -313,5 +328,6 @@ export default function MenuPage() {
         </section>
       </main>
     </div>
+    </RequireCustomer>
   );
 }
