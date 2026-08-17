@@ -15,31 +15,7 @@ import { Logo } from "@/components/ui/Logo";
 import { Button } from "@/components/ui/Button";
 import { useIsAdmin } from "@/lib/auth";
 
-function FloatingOrderCard() {
-  return (
-    <div className="glass animate-float absolute hidden rounded-3xl p-4 shadow-pop xl:block">
-      <div className="flex items-center gap-3">
-        <span className="grid size-12 place-items-center rounded-2xl bg-gradient-to-br from-primary-500 to-primary-700 text-2xl shadow-glow">
-          🍕
-        </span>
-        <div>
-          <p className="text-sm font-bold text-ink-900">Margherita Pizza</p>
-          <p className="flex items-center gap-1.5 text-xs text-ink-500">
-            <Star className="size-3 fill-amber-500 text-amber-500" />
-            4.8 · ₹399
-          </p>
-        </div>
-      </div>
-      <div className="mt-3 flex items-center gap-2 text-xs font-semibold text-ink-500">
-        <span className="inline-flex size-2 animate-pulse rounded-full bg-sage-500" />
-        On the way · 12 min
-      </div>
-      <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-beige-200">
-        <div className="h-full w-3/4 rounded-full bg-gradient-to-r from-primary-500 to-coral-400" />
-      </div>
-    </div>
-  );
-}
+
 
 const trust = [
   { icon: Timer, label: "30-min delivery" },
@@ -124,7 +100,7 @@ export default function HomePage() {
           </>
         ) : (
           <>
-            <FloatingOrderCard />
+
             <span className="glass inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[13px] font-semibold text-ink-700">
               <Flame className="size-3.5 text-primary-600" />
               Hot food, delivered in 30 minutes
